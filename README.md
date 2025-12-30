@@ -60,13 +60,87 @@ A comprehensive project context tracker with intelligent Claude Code integration
 
 ## Quick Start
 
-### Prerequisites
+### Option 1: Docker (Recommended) 🐳
+
+The easiest way to get started is using Docker Compose:
+
+#### Prerequisites
+- Docker 20.10+
+- Docker Compose v2.0+
+
+#### Development Mode
+
+```bash
+# Clone the repository
+git clone https://github.com/your-username/claude-context-tracker.git
+cd claude-context-tracker
+
+# Start all services (PocketBase + Frontend)
+docker-compose -f docker-compose.dev.yml up
+
+# Or run in detached mode
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+**Access the application:**
+- Frontend: http://localhost:5173
+- PocketBase Admin: http://localhost:8090/_/
+
+**First-time setup:**
+1. Open http://localhost:8090/_/
+2. Create an admin account
+3. Start using the dashboard at http://localhost:5173
+
+#### Production Mode
+
+```bash
+# Build and start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+**Access the application:**
+- Frontend: http://localhost:3000
+- PocketBase Admin: http://localhost:8090/_/
+
+#### Enable Daemon (Optional)
+
+To enable Claude Code monitoring:
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` and set your project ID:
+   ```bash
+   PROJECT_ID=your-project-id-here
+   REPO_PATH=/path/to/your/repo
+   ```
+
+3. Uncomment the daemon service in `docker-compose.yml`
+
+4. Restart:
+   ```bash
+   docker-compose up -d
+   ```
+
+---
+
+### Option 2: Manual Installation
+
+#### Prerequisites
 
 - Node.js 18+ (for frontend)
 - Go 1.21+ (for daemon and CLI)
 - PocketBase binary (downloaded automatically or manually)
 
-### 1. Setup PocketBase
+#### 1. Setup PocketBase
 
 ```bash
 cd pocketbase
@@ -276,7 +350,143 @@ export PB_URL=http://your-server:8090
 
 ## Deployment
 
-### Frontend
+### Docker Deployment (Production)
+
+#### Using Docker Compose
+
+1. **Clone and configure:**
+   ```bash
+   git clone https://github.com/your-username/claude-context-tracker.git
+   cd claude-context-tracker
+   cp .env.example .env
+   ```
+
+2. **Edit `.env` if needed:**
+   ```bash
+   # Configure daemon (optional)
+   PROJECT_ID=your-project-id
+   REPO_PATH=/path/to/repo
+   ```
+
+3. **Build and start:**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **View logs:**
+   ```bash
+   docker-compose logs -f
+   ```
+
+5. **Stop and remove:**
+   ```bash
+   docker-compose down
+   ```
+
+#### Docker Commands Reference
+
+```bash
+# Rebuild after code changes
+docker-compose build
+
+# Restart a specific service
+docker-compose restart frontend
+
+# View service logs
+docker-compose logs -f pocketbase
+
+# Execute commands in a container
+docker-compose exec pocketbase /bin/sh
+
+# Remove volumes (WARNING: deletes data)
+docker-compose down -v
+
+# Pull latest images
+docker-compose pull
+```
+
+#### Production Deployment on VPS/Cloud
+
+1. **Install Docker & Docker Compose** on your server
+
+2. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/claude-context-tracker.git
+   cd claude-context-tracker
+   ```
+
+3. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   # Edit .env with production values
+   ```
+
+4. **Update docker-compose.yml** for production:
+   - Change port mappings if needed (e.g., `80:80` instead of `3000:80`)
+   - Add reverse proxy (nginx/traefik) if needed
+   - Configure SSL/TLS certificates
+
+5. **Start services:**
+   ```bash
+   docker-compose up -d
+   ```
+
+6. **Setup auto-restart** (systemd):
+   ```bash
+   # Create systemd service
+   sudo nano /etc/systemd/system/cct.service
+   ```
+
+   Add:
+   ```ini
+   [Unit]
+   Description=Claude Context Tracker
+   Requires=docker.service
+   After=docker.service
+
+   [Service]
+   Type=oneshot
+   RemainAfterExit=yes
+   WorkingDirectory=/path/to/claude-context-tracker
+   ExecStart=/usr/bin/docker-compose up -d
+   ExecStop=/usr/bin/docker-compose down
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+   Enable:
+   ```bash
+   sudo systemctl enable cct
+   sudo systemctl start cct
+   ```
+
+#### Backup & Restore
+
+**Backup PocketBase data:**
+```bash
+# Stop containers
+docker-compose down
+
+# Backup volume
+docker run --rm -v cct_pocketbase_data:/data -v $(pwd):/backup alpine tar czf /backup/pocketbase-backup-$(date +%Y%m%d).tar.gz /data
+
+# Restart
+docker-compose up -d
+```
+
+**Restore:**
+```bash
+docker-compose down
+docker run --rm -v cct_pocketbase_data:/data -v $(pwd):/backup alpine tar xzf /backup/pocketbase-backup-YYYYMMDD.tar.gz -C /
+docker-compose up -d
+```
+
+---
+
+### Manual Deployment
+
+#### Frontend
 
 ```bash
 cd frontend
@@ -284,14 +494,14 @@ npm run build
 # Deploy dist/ folder to your hosting service
 ```
 
-### PocketBase
+#### PocketBase
 
 ```bash
 # Production mode
 ./pocketbase serve --http=0.0.0.0:8090 --dir=/path/to/pb_data
 ```
 
-### Daemon (systemd service)
+#### Daemon (systemd service)
 
 Create `/etc/systemd/system/cct-daemon.service`:
 
@@ -335,6 +545,57 @@ sudo systemctl start cct-daemon
 - Check Claude Code installation
 - Verify logs path: `~/.claude/logs` or `~/.config/claude/logs`
 - Use `-logs` flag to specify custom path
+
+### Docker Issues
+
+#### Containers won't start
+```bash
+# Check container logs
+docker-compose logs
+
+# Check specific service
+docker-compose logs pocketbase
+
+# Verify Docker is running
+docker ps
+```
+
+#### Port already in use
+```bash
+# Check what's using the port
+sudo lsof -i :8090  # or :3000, :5173
+
+# Kill the process or change port in docker-compose.yml
+```
+
+#### Build failures
+```bash
+# Clean rebuild
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### Permission denied errors
+```bash
+# Fix volume permissions
+sudo chown -R $(id -u):$(id -g) ./pocketbase/pb_data
+
+# Or run with sudo (not recommended for production)
+sudo docker-compose up -d
+```
+
+#### Can't access PocketBase admin
+- Ensure container is running: `docker-compose ps`
+- Check logs: `docker-compose logs pocketbase`
+- Verify port mapping in docker-compose.yml
+- Try accessing http://localhost:8090/_/
+
+#### Frontend can't connect to PocketBase in Docker
+- Ensure services are on the same network
+- Use service name (e.g., `http://pocketbase:8090`) for inter-container communication
+- Use `http://localhost:8090` for browser access
+- Check CORS settings in PocketBase admin
 
 ## Contributing
 

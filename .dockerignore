@@ -1,0 +1,45 @@
+# Root level dockerignore
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+*/node_modules
+*/dist
+*/build
+*/*.exe
+*/*.test
+*/vendor
+*/pb_data
+
+# Misc
+tmp/
+temp/
+.cache

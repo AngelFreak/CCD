@@ -1,0 +1,30 @@
+# PocketBase binary (will be downloaded)
+pocketbase
+
+# Data directory (mounted as volume)
+pb_data
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+
+# Backups
+*.zip
+*.tar.gz
+
+# README (not needed in container)
+README.md

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PocketBase backend (development mode)
+  pocketbase:
+    build:
+      context: ./pocketbase
+      dockerfile: Dockerfile
+    container_name: cct-pocketbase-dev
+    ports:
+      - "8090:8090"
+    volumes:
+      # Mount pb_data for persistence during development
+      - ./pocketbase/pb_data:/app/pb_data
+      - ./pocketbase/pb_migrations:/app/pb_migrations:ro
+    environment:
+      - TZ=UTC
+    restart: unless-stopped
+    networks:
+      - cct-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8090/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # React frontend (development mode with hot reload)
+  frontend:
+    image: node:18-alpine
+    container_name: cct-frontend-dev
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_POCKETBASE_URL=http://localhost:8090
+      - NODE_ENV=development
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cct-network
+
+  # Daemon for Claude Code monitoring (development mode)
+  # Uncomment when needed
+  # daemon:
+  #   build:
+  #     context: ./daemon
+  #     dockerfile: Dockerfile
+  #   container_name: cct-daemon-dev
+  #   environment:
+  #     - PB_URL=http://pocketbase:8090
+  #     - PROJECT_ID=${PROJECT_ID}
+  #   volumes:
+  #     # Mount source code for live development
+  #     - ./daemon:/app/src:ro
+  #     # Mount Claude Code logs
+  #     - ${HOME}/.claude/logs:/logs:ro
+  #     # Mount repository for ledger storage
+  #     - ${REPO_PATH:-./}:/repo
+  #   depends_on:
+  #     pocketbase:
+  #       condition: service_healthy
+  #   command: ["-project", "${PROJECT_ID}", "-pb-url", "http://pocketbase:8090", "-logs", "/logs", "-repo", "/repo", "-v"]
+  #   restart: unless-stopped
+  #   networks:
+  #     - cct-network
+
+networks:
+  cct-network:
+    driver: bridge
