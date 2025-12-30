@@ -1,117 +1,44 @@
-name: Build and Release .deb Package
+name: Build and Release
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
   workflow_dispatch:
 
 jobs:
   build-deb:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-22.04
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache-dependency-path: |
-            cli/go.sum
-            daemon/go.sum
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
+      - uses: actions/checkout@v4
+      
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip dpkg-dev
-
-      - name: Build .deb package
-        run: |
-          chmod +x build-deb.sh
-          ./build-deb.sh
-
-      - name: Get package name
-        id: package
-        run: |
-          PACKAGE_FILE=$(ls build/*.deb)
-          echo "file=${PACKAGE_FILE}" >> $GITHUB_OUTPUT
-          echo "name=$(basename ${PACKAGE_FILE})" >> $GITHUB_OUTPUT
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          if [ -n "${{ github.ref_name }}" ]; then
-            VERSION="${{ github.ref_name }}"
-          else
-            VERSION="v1.0.0"
-          fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          sudo apt-get install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          release_name: CCT ${{ steps.version.outputs.version }}
-          body: |
-            # Claude Context Tracker ${{ steps.version.outputs.version }}
-
-            **Native Ubuntu Application** - No manual setup required! 🎉
-
-            ## Installation
-
-            Download and install the `.deb` package:
-
-            ```bash
-            sudo apt install ./${{ steps.package.outputs.name }}
-            ```
-
-            ## What's Included
-
-            - ✅ Complete native Ubuntu application
-            - ✅ Desktop launcher in Applications menu (Development → Claude Context Tracker)
-            - ✅ Pre-built web interface (no npm install needed!)
-            - ✅ `cct` - CLI tool
-            - ✅ `cct-daemon` - Monitoring daemon
-            - ✅ `cct-pocketbase` - Database backend (auto-starts as systemd service)
-
-            ## Get Started (30 seconds)
-
-            1. Launch CCT from **Applications menu → Development → Claude Context Tracker**
-               - Or run: `cct-launcher`
-               - Or visit: http://localhost:8090
-
-            2. Create your admin account at http://localhost:8090/_/
-
-            3. Start tracking your projects! 🚀
-
-            ## CLI Commands
-
-            ```bash
-            cct pull <project>       # Pull context to CLAUDE.md
-            cct push <project> ...   # Save session summary
-            cct status               # Show active project
-            ```
-
-            For full documentation, see [README.md](https://github.com/AngelFreak/CCD/blob/main/README.md)
-          draft: false
-          prerelease: false
-
-      - name: Upload .deb to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          toolchain: stable
+          override: true
+      
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+      
+      - name: Build deb
+        run: |
+          cd gtk4-app
+          cargo deb
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.package.outputs.file }}
-          asset_name: ${{ steps.package.outputs.name }}
-          asset_content_type: application/vnd.debian.binary-package
+          name: deb-package
+          path: gtk4-app/target/debian/*.deb
+      
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gtk4-app/target/debian/*.deb

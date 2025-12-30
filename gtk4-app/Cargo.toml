@@ -62,3 +62,19 @@ lto = true
 codegen-units = 1
 opt-level = 3
 strip = true
+
+[package.metadata.deb]
+maintainer = "Claude Context Tracker Contributors"
+copyright = "2024, MIT License"
+license-file = ["../LICENSE", "0"]
+extended-description = """\
+Native GTK4 application for managing Claude Code context across projects.
+Features embedded SQLite database, background monitoring, CLI commands,
+and intelligent fact extraction from conversation logs."""
+depends = "$auto, libgtk-4-1, libadwaita-1-0"
+section = "devel"
+priority = "optional"
+assets = [
+    ["target/release/claude-context-tracker", "usr/bin/", "755"],
+    ["resources/com.github.claudecontexttracker.desktop", "usr/share/applications/", "644"],
+]
