@@ -1,11 +1,10 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::Project;
 use crate::views::{DashboardView, ProjectDetailView};
 use adw::prelude::*;
 use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
 
 /// Navigation state for the application
 #[derive(Debug, Clone, PartialEq)]
@@ -18,13 +17,13 @@ pub enum NavigationState {
 pub struct MainWindow {
     window: adw::ApplicationWindow,
     navigation_view: adw::NavigationView,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     state: Rc<RefCell<NavigationState>>,
 }
 
 impl MainWindow {
     /// Create a new main window
-    pub fn new(app: &adw::Application, pb_client: SharedPocketBaseClient) -> Self {
+    pub fn new(app: &adw::Application, repository: Repository) -> Self {
         let window = adw::ApplicationWindow::builder()
             .application(app)
             .title("Claude Context Tracker")
@@ -41,7 +40,7 @@ impl MainWindow {
         let mut main_window = Self {
             window,
             navigation_view,
-            pb_client,
+            repository,
             state,
         };
 
@@ -83,10 +82,10 @@ impl MainWindow {
             .build();
         new_project_btn.add_css_class("flat");
 
-        let pb_client = self.pb_client.clone();
+        let repository = self.repository.clone();
         let nav_view = self.navigation_view.clone();
         new_project_btn.connect_clicked(clone!(@weak nav_view => move |_| {
-            Self::show_new_project_dialog(pb_client.clone(), nav_view.clone());
+            Self::show_new_project_dialog(repository.clone(), nav_view.clone());
         }));
 
         header.pack_end(&new_project_btn);
@@ -102,7 +101,7 @@ impl MainWindow {
         container.append(&header);
 
         // Dashboard content
-        let dashboard_view = DashboardView::new(self.pb_client.clone(), self.navigation_view.clone());
+        let dashboard_view = DashboardView::new(self.repository.clone(), self.navigation_view.clone());
         container.append(&dashboard_view.widget());
 
         // Connect refresh button
@@ -114,7 +113,7 @@ impl MainWindow {
     }
 
     /// Show dialog to create a new project
-    fn show_new_project_dialog(pb_client: SharedPocketBaseClient, nav_view: adw::NavigationView) {
+    fn show_new_project_dialog(repository: Repository, nav_view: adw::NavigationView) {
         // This will be implemented when we create the dashboard view
         log::info!("New project dialog requested");
     }
@@ -147,7 +146,7 @@ impl MainWindow {
 
         // Create project detail view
         let project_detail = ProjectDetailView::new(
-            self.pb_client.clone(),
+            self.repository.clone(),
             project_id,
             self.navigation_view.clone(),
         );

@@ -1,4 +1,4 @@
-mod api;
+mod db;
 mod models;
 mod utils;
 mod views;
@@ -6,7 +6,7 @@ mod window;
 
 use adw::prelude::*;
 use anyhow::Result;
-use api::PocketBaseClient;
+use db::{Database, Repository};
 use std::sync::Arc;
 use window::MainWindow;
 
@@ -48,31 +48,24 @@ fn main() -> Result<()> {
 fn build_ui(app: &adw::Application) {
     log::info!("Building UI");
 
-    // Create PocketBase client (read URL from environment or use default)
-    let pb_url = std::env::var("POCKETBASE_URL").ok();
-    let pb_client = match PocketBaseClient::new(pb_url) {
-        Ok(client) => Arc::new(client),
+    // Create embedded database
+    let database = match Database::new(None) {
+        Ok(db) => {
+            log::info!("Database initialized at: {}", db.db_path().display());
+            db
+        }
         Err(e) => {
-            log::error!("Failed to create PocketBase client: {}", e);
-            show_error_dialog(app, "Failed to initialize", &e.to_string());
+            log::error!("Failed to initialize database: {}", e);
+            show_error_dialog(app, "Database Initialization Failed", &e.to_string());
             return;
         }
     };
 
-    // Check PocketBase connection
-    let client_clone = pb_client.clone();
-    glib::spawn_future_local(async move {
-        match client_clone.health_check().await {
-            true => log::info!("PocketBase connection successful"),
-            false => {
-                log::warn!("PocketBase server not reachable at startup");
-                // Don't block the UI, just warn
-            }
-        }
-    });
+    // Create repository for database operations
+    let repository = Repository::new(database.into_shared());
 
     // Create main window
-    let window = MainWindow::new(app, pb_client);
+    let window = MainWindow::new(app, repository);
     window.present();
 }
 
