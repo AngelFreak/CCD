@@ -4,41 +4,97 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build-deb:
+  build-and-test:
+    name: Build .deb package
     runs-on: ubuntu-22.04
+
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install dependencies
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-4-dev libadwaita-1-dev build-essential pkg-config
-      
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+          sudo apt-get install -y \
+            libgtk-4-dev \
+            libadwaita-1-dev \
+            build-essential \
+            pkg-config \
+            libsqlite3-dev
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
-      
-      - name: Install cargo-deb
-        run: cargo install cargo-deb
-      
-      - name: Build deb
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: gtk4-app
+          cache-on-failure: true
+
+      - name: Check formatting
         run: |
           cd gtk4-app
-          cargo deb
-      
+          cargo fmt --check
+        continue-on-error: true
+
+      - name: Run clippy
+        run: |
+          cd gtk4-app
+          cargo clippy -- -D warnings
+        continue-on-error: true
+
+      - name: Build binary
+        run: |
+          cd gtk4-app
+          cargo build --release
+
+      - name: Install cargo-deb
+        run: cargo install cargo-deb --locked
+
+      - name: Build .deb package
+        run: |
+          cd gtk4-app
+          cargo deb --no-build
+
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=dev-${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rename .deb package
+        run: |
+          cd gtk4-app/target/debian
+          DEB_FILE=$(ls *.deb)
+          mv "$DEB_FILE" "claude-context-tracker_${{ steps.version.outputs.version }}_amd64.deb"
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deb-package
           path: gtk4-app/target/debian/*.deb
-      
-      - name: Release
+          retention-days: 30
+
+      - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: gtk4-app/target/debian/*.deb
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
