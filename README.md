@@ -24,12 +24,16 @@ A comprehensive project context tracker with intelligent Claude Code integration
 - ✅ `cct push "<summary>"` - save session summary
 - ✅ `cct status` - show active project, token usage
 - ✅ `cct switch <project>` - change active project
+- ✅ `cct diff <project>` - show session differences
 
-### Phase 4: Smart Context (Future)
-- ⏳ Importance scoring for facts
-- ⏳ Stale fact detection
-- ⏳ Context compression (summarize old facts)
-- ⏳ Diff view: what changed since last session
+### Phase 4: Smart Context ✅
+- ✅ Importance scoring for facts (1-5 scale with AI-like scoring)
+- ✅ Stale fact detection (auto-marks outdated facts)
+- ✅ Context compression (keeps top N facts per type)
+- ✅ Diff view: what changed since last session
+- ✅ Continuity ledger system (inspired by Continuous-Claude-v2)
+- ✅ Pre-compact handoff detection (saves state before context clearing)
+- ✅ Session resumption with full context restore
 
 ## Tech Stack
 
@@ -125,6 +129,9 @@ cct push my-project "Implemented user authentication"
 # Show current project status
 cct status
 
+# Show session differences (what changed)
+cct diff my-project
+
 # Switch to a different project
 cct switch another-project
 
@@ -138,11 +145,17 @@ cct version
 # Start monitoring Claude Code logs for a project
 ./cct-daemon -project <project-id> -v
 
+# With smart context features enabled (default)
+./cct-daemon -project <project-id> -smart -compact-threshold 170000
+
 # Custom log path
 ./cct-daemon -project <project-id> -logs /path/to/logs
 
 # Custom PocketBase URL
 ./cct-daemon -project <project-id> -pb-url http://your-server:8090
+
+# Specify repository path for ledger storage
+./cct-daemon -project <project-id> -repo /path/to/repo
 ```
 
 ## Project Structure
@@ -341,10 +354,50 @@ MIT License - see LICENSE file for details
 - [x] Phase 1: Project Dashboard
 - [x] Phase 2: Claude Code Daemon
 - [x] Phase 3: CLI Integration
-- [ ] Phase 4: Smart Context Features
+- [x] Phase 4: Smart Context Features
 - [ ] Phase 5: Mobile App (Capacitor)
 - [ ] Phase 6: Team Collaboration
-- [ ] Phase 7: AI-powered context optimization
+- [ ] Phase 7: Advanced AI-powered features
+
+## Smart Context Features
+
+### Importance Scoring
+Facts are automatically scored 1-5 based on:
+- **Fact type** (blockers=5, decisions=4, todos=3, etc.)
+- **Content keywords** (critical, urgent, security, etc.)
+- **Recency** (recent facts get bonus points)
+
+### Stale Detection
+Facts are marked stale when:
+- Blockers are older than 3 days (likely resolved)
+- TODOs are older than 7 days (likely completed or deprioritized)
+- File changes are older than 14 days
+- Content indicates completion ("done", "resolved")
+
+### Context Compression
+Keeps only top N most important facts per type, reducing noise while preserving critical information.
+
+### Pre-Compact Handoff
+When token usage reaches 85% of threshold (default: 170k), the daemon automatically creates a handoff document with:
+- Session summary
+- Key facts by importance
+- Active TODOs
+- Current blockers
+- File changes
+
+Handoff files are stored in `thoughts/shared/handoffs/` for easy resumption.
+
+### Continuity Ledger
+Inspired by [Continuous-Claude-v2](https://github.com/parcadei/Continuous-Claude-v2), the ledger system maintains a lossless state record in `thoughts/ledgers/CONTINUITY_*.jsonl`.
+
+Each entry includes:
+- Timestamp and session ID
+- Token count
+- All facts with importance scores
+- Decisions, blockers, next steps
+- File changes
+
+This enables "clear and resume" workflows instead of lossy compacting.
 
 ## Support
 

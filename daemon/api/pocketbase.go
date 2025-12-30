@@ -14,6 +14,12 @@ type Client struct {
 	client  *http.Client
 }
 
+type Project struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	RepoPath string `json:"repo_path"`
+}
+
 func NewClient(baseURL string) *Client {
 	return &Client{
 		baseURL: baseURL,
@@ -22,18 +28,28 @@ func NewClient(baseURL string) *Client {
 }
 
 func (c *Client) VerifyProject(projectID string) error {
+	_, err := c.GetProject(projectID)
+	return err
+}
+
+func (c *Client) GetProject(projectID string) (*Project, error) {
 	url := fmt.Sprintf("%s/api/collections/projects/records/%s", c.baseURL, projectID)
 	resp, err := c.client.Get(url)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("project not found: %s", projectID)
+		return nil, fmt.Errorf("project not found: %s", projectID)
 	}
 
-	return nil
+	var project Project
+	if err := json.NewDecoder(resp.Body).Decode(&project); err != nil {
+		return nil, err
+	}
+
+	return &project, nil
 }
 
 func (c *Client) CreateFact(projectID string, fact extractor.Fact) error {
@@ -88,6 +104,37 @@ func (c *Client) CreateSession(projectID, summary string, tokenCount int) error 
 
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("failed to create session: status %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (c *Client) UpdateFactStale(factID string, stale bool) error {
+	url := fmt.Sprintf("%s/api/collections/extracted_facts/records/%s", c.baseURL, factID)
+
+	data := map[string]interface{}{
+		"stale": stale,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update fact: status %d", resp.StatusCode)
 	}
 
 	return nil

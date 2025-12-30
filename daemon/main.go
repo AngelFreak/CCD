@@ -16,8 +16,11 @@ import (
 var (
 	pbURL      = flag.String("pb-url", "http://localhost:8090", "PocketBase URL")
 	projectID  = flag.String("project", "", "Project ID to track")
+	repoPath   = flag.String("repo", "", "Repository path for ledger storage")
 	logPath    = flag.String("logs", getDefaultLogPath(), "Claude Code logs directory")
 	verbose    = flag.Bool("v", false, "Verbose logging")
+	smartMode  = flag.Bool("smart", true, "Enable smart context features (importance scoring, compression)")
+	compactThreshold = flag.Int("compact-threshold", 170000, "Token threshold for pre-compact handoff")
 )
 
 func main() {
@@ -30,18 +33,37 @@ func main() {
 	// Initialize PocketBase client
 	client := api.NewClient(*pbURL)
 
-	// Verify project exists
-	if err := client.VerifyProject(*projectID); err != nil {
+	// Verify project exists and get repo path
+	project, err := client.GetProject(*projectID)
+	if err != nil {
 		log.Fatalf("Failed to verify project: %v", err)
+	}
+
+	// Use repo path from project if not specified
+	if *repoPath == "" {
+		*repoPath = project.RepoPath
 	}
 
 	log.Printf("Starting Claude Context Tracker daemon")
 	log.Printf("PocketBase URL: %s", *pbURL)
 	log.Printf("Project ID: %s", *projectID)
+	log.Printf("Repo Path: %s", *repoPath)
 	log.Printf("Logs path: %s", *logPath)
+	log.Printf("Smart mode: %v", *smartMode)
+	log.Printf("Compact threshold: %d tokens", *compactThreshold)
 
-	// Create watcher
-	watcher, err := monitor.NewWatcher(*logPath, *projectID, client, *verbose)
+	// Create watcher with enhanced features
+	config := monitor.WatcherConfig{
+		LogPath:          *logPath,
+		ProjectID:        *projectID,
+		RepoPath:         *repoPath,
+		Client:           client,
+		Verbose:          *verbose,
+		SmartMode:        *smartMode,
+		CompactThreshold: *compactThreshold,
+	}
+
+	watcher, err := monitor.NewWatcherWithConfig(config)
 	if err != nil {
 		log.Fatalf("Failed to create watcher: %v", err)
 	}

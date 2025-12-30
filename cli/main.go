@@ -28,6 +28,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewPushCommand(&pbURL))
 	rootCmd.AddCommand(commands.NewStatusCommand(&pbURL))
 	rootCmd.AddCommand(commands.NewSwitchCommand(&pbURL))
+	rootCmd.AddCommand(commands.NewDiffCommand(&pbURL))
 	rootCmd.AddCommand(&cobra.Command{
 		Use:   "version",
 		Short: "Print version information",
