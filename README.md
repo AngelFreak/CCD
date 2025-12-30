@@ -1,184 +1,418 @@
-# Claude Context Tracker (CCT)
+# Claude Context Tracker
 
-Track and manage context for your Claude Code projects. Never lose important details when conversations get compacted.
+> **Native Linux application for managing Claude Code context across projects**
 
-## What It Does
+A modern GTK4 desktop application that helps you track, manage, and maintain context for your Claude Code projects. Never lose important details when conversations get compacted.
 
-- **Web Dashboard**: Manage multiple projects, edit context sections, view session history
-- **CLI Tool**: Quick commands to pull/push context, check status, switch projects
-- **Daemon**: Monitors Claude Code conversations, extracts facts automatically
-- **Smart Context**: Scores importance, detects stale facts, creates handoff documents
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Linux-lightgrey.svg)
+![GTK](https://img.shields.io/badge/GTK-4-orange.svg)
+
+## Features
+
+### 🖥️ Native Desktop Application
+- **Modern GTK4 Interface** - Clean, native GNOME application with libadwaita
+- **Background Monitoring** - Toggle to automatically track Claude Code conversations
+- **Desktop Notifications** - Get notified about facts extracted, token thresholds, and monitoring events
+- **Project Management** - Organize multiple projects with easy switching
+- **Context Editing** - Structured sections for project overview, tech stack, decisions, and gotchas
+
+### 🤖 Intelligent Fact Extraction
+- **Automatic Detection** - Extracts decisions, blockers, TODOs, file changes, dependencies, and insights
+- **Importance Scoring** - Facts auto-scored 1-5 based on type and content
+- **Staleness Detection** - Automatically marks outdated facts (resolved TODOs, old blockers)
+- **Session Tracking** - Monitor token usage and conversation history
+
+### 💻 Command Line Interface
+- **Pull Context** - Generate `CLAUDE.md` files from stored project data
+- **Push Sessions** - Save conversation summaries and token counts
+- **Project Management** - Create, list, and switch between projects
+- **Status Monitoring** - Check current project and token usage
+- **Diff View** - Compare context changes between sessions
+
+### 🔄 Background Daemon
+- **File Monitoring** - Watches `~/.claude/logs/` for conversation files
+- **Real-time Extraction** - Processes conversations as they happen
+- **Embedded Database** - SQLite storage with no external dependencies
 
 ## Tech Stack
 
-- **Frontend**: React + Vite (web UI)
-- **Backend**: PocketBase (single binary database)
-- **Daemon/CLI**: Go binaries
+- **Language**: Rust
+- **UI Framework**: GTK4 + libadwaita
+- **Database**: Embedded SQLite (rusqlite with connection pooling)
+- **Architecture**: Single binary with three modes (GUI, CLI, daemon)
+- **Build System**: Cargo with automated .deb packaging
 
-## Installation (Ubuntu/Linux)
+## Installation
 
-### Option 1: Download Pre-built Package (Easiest) ⭐
-
-**Prerequisites:** None! Everything is included and ready to use.
+### Download Pre-built Package (Recommended)
 
 ```bash
-# Download the latest .deb package from GitHub releases
-wget https://github.com/AngelFreak/CCD/releases/latest/download/cct_1.0.0_amd64.deb
+# Download the latest .deb from GitHub Releases
+wget https://github.com/AngelFreak/CCD/releases/latest/download/claude-context-tracker_<version>_amd64.deb
 
-# Install the package
-sudo apt install ./cct_1.0.0_amd64.deb
+# Install
+sudo apt install ./claude-context-tracker_<version>_amd64.deb
 ```
-
-Or visit the [Releases page](https://github.com/AngelFreak/CCD/releases) to download manually.
 
 **What you get:**
-- ✅ Complete native Ubuntu application
-- ✅ Desktop launcher in Applications menu (Development → Claude Context Tracker)
-- ✅ Web interface pre-built and ready (no npm setup needed!)
-- ✅ PocketBase backend running as systemd service
-- ✅ CLI tools: `cct`, `cct-daemon`, `cct-launcher`
+- ✅ Single native application binary
+- ✅ Desktop launcher (Applications → Development → Claude Context Tracker)
+- ✅ CLI commands available: `claude-context-tracker`
+- ✅ Embedded SQLite database (no external services)
+- ✅ All dependencies included
 
-**First-time setup (30 seconds):**
-1. Launch CCT from Applications menu → **Development** → **Claude Context Tracker**
-   - Or run: `cct-launcher`
-   - Or visit: http://localhost:8090
-2. Create your admin account at http://localhost:8090/_/
-3. Start tracking your projects! 🚀
+### Build from Source
 
----
+**Prerequisites:**
+- Rust 1.70+ (`curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+- GTK4 development libraries
+- libadwaita development libraries
 
-### Option 2: Build from Source
-
-**Prerequisites:** Node.js 18+, Go 1.21+
-
+**Ubuntu/Debian:**
 ```bash
-# Clone the repository
+# Install dependencies
+sudo apt-get install libgtk-4-dev libadwaita-1-dev build-essential pkg-config
+
+# Clone and build
 git clone https://github.com/AngelFreak/CCD.git
-cd CCD
+cd CCD/gtk4-app
+cargo build --release
 
-# Build the .deb package (includes frontend build)
-./build-deb.sh
+# Install binary
+sudo cp target/release/claude-context-tracker /usr/local/bin/
 
-# Install the package
-sudo apt install ./build/cct_1.0.0_amd64.deb
-```
-
-**What gets installed:**
-- `cct` - CLI tool
-- `cct-daemon` - Monitoring daemon
-- `cct-pocketbase` - Database (auto-starts as systemd service)
-- `cct-launcher` - Desktop launcher script
-- Pre-built frontend in `/usr/share/cct/frontend` (served by PocketBase)
-- Desktop integration files (.desktop, icon)
-
-**Optional - Configure daemon:**
-```bash
-sudo cp /usr/share/cct/cct-daemon.service.template /etc/systemd/system/cct-daemon.service
-sudo nano /etc/systemd/system/cct-daemon.service  # Edit PROJECT_ID and repo path
-sudo systemctl enable cct-daemon
-sudo systemctl start cct-daemon
-```
-
----
-
-### Option 3: Manual Installation (Advanced)
-
-**Prerequisites:** Node.js 18+, Go 1.21+
-
-```bash
-# 1. Setup PocketBase
-cd pocketbase
-wget https://github.com/pocketbase/pocketbase/releases/latest/download/pocketbase_linux_amd64.zip
-unzip pocketbase_linux_amd64.zip
-./pocketbase serve
-
-# 2. Setup Frontend
-cd frontend
-npm install
-npm run dev
-
-# 3. Build CLI
-cd cli
-go build -o cct
-sudo mv cct /usr/local/bin/
-
-# 4. Build Daemon
-cd daemon
-go build -o cct-daemon
-sudo mv cct-daemon /usr/local/bin/
+# Or build .deb package
+cargo install cargo-deb
+cargo deb
+sudo apt install ./target/debian/*.deb
 ```
 
 ## Usage
 
-### Launching CCT
+### Launch GUI
 
-**If you installed via .deb (recommended):**
-```bash
-# Option 1: Launch from Applications menu
-# Navigate to: Applications → Development → Claude Context Tracker
-
-# Option 2: Use the launcher command
-cct-launcher
-
-# Option 3: Direct browser access
-# Visit: http://localhost:8090
+**From Applications Menu:**
+```
+Applications → Development → Claude Context Tracker
 ```
 
-PocketBase is already running as a system service, and the web interface is pre-built and ready to use!
-
-**If you installed manually:**
+**From Terminal:**
 ```bash
-# Terminal 1: Start PocketBase
-cd pocketbase && ./pocketbase serve
-
-# Terminal 2: Start Frontend (development mode)
-cd frontend && npm run dev
-
-# Terminal 3: Start Daemon (optional)
-cct-daemon -project <project-id> -repo /path/to/repo
+claude-context-tracker gui
 ```
+
+### Enable Background Monitoring
+
+1. Launch the application
+2. Click the **Monitor** toggle in the header bar
+3. Label changes to "Monitoring" (orange) when active
+4. Facts are automatically extracted from `~/.claude/logs/` conversations
+
+### Desktop Notifications
+
+The application sends desktop notifications for important events:
+
+- **Facts Extracted** - Notifies when new facts are detected in Claude Code conversations
+- **Token Threshold** - Warns when context size exceeds 170,000 tokens
+- **Monitoring Events** - Confirms when background monitoring starts/stops
+- **Context Operations** - Notifies when pulling or pushing context to CLAUDE.md
+- **Project Created** - Confirms when new projects are created
+
+Notifications use the system's native notification daemon (e.g., GNOME Shell, Dunst, or others).
 
 ### CLI Commands
 
 ```bash
-cct pull <project>              # Write context to CLAUDE.md
-cct push <project> "summary"    # Save session summary
-cct status                      # Show active project & token usage
-cct switch <project>            # Change active project
-cct diff <project>              # Show what changed
+# Pull context to CLAUDE.md
+claude-context-tracker pull <project-name>
+
+# Pull to specific file
+claude-context-tracker pull <project-name> --output /path/to/file.md
+
+# Save session summary
+claude-context-tracker push <project-name> "Implemented new feature"
+
+# Save with token count
+claude-context-tracker push <project-name> "Fixed bugs" --tokens 45000
+
+# Check status
+claude-context-tracker status
+
+# List all projects
+claude-context-tracker list
+
+# Filter by status
+claude-context-tracker list --status active
+
+# Create new project
+claude-context-tracker new "My Project" --repo /path/to/repo
+
+# Add metadata
+claude-context-tracker new "My Project" \
+  --repo /path/to/repo \
+  --tech "Rust,GTK4,SQLite" \
+  --description "My awesome project"
+
+# View changes between sessions
+claude-context-tracker diff <project-name>
+
+# Run daemon mode (background monitoring)
+claude-context-tracker monitor <project-name>
+
+# Custom logs directory
+claude-context-tracker monitor <project-name> --logs-dir /custom/path
+```
+
+### CLAUDE.md Format
+
+When you run `pull`, the generated `CLAUDE.md` includes:
+
+```markdown
+# Project Name
+
+## Project Overview
+[Your overview section]
+
+## Current State
+Status: Active
+Priority: High
+Tech Stack: Rust, GTK4, SQLite
+
+## Next Steps
+1. [Action items from context]
+
+## Gotchas
+- [Important notes and warnings]
+
+## Decisions Log
+- [Key architectural decisions]
+
+## Important Facts
+### Blockers (Priority 5)
+- [Critical blocking issues]
+
+### Decisions (Priority 4)
+- [Recent important decisions]
+
+### TODOs (Priority 3)
+- [Active tasks]
 ```
 
 ## How It Works
 
-### Smart Context Features
+### Architecture
 
-- **Importance Scoring**: Facts auto-scored 1-5 based on type (blockers=5, decisions=4, etc.)
-- **Stale Detection**: Marks old TODOs, blockers, and file changes as stale
-- **Context Compression**: Keeps only top N most important facts per type
-- **Pre-Compact Handoff**: At 85% token threshold, creates handoff document with key facts
-- **Continuity Ledger**: Maintains lossless state record in `thoughts/ledgers/CONTINUITY_*.jsonl`
+```
+┌─────────────────────────────────────────┐
+│         Single Rust Binary              │
+├─────────────────────────────────────────┤
+│  GUI Mode  │  CLI Mode  │  Daemon Mode  │
+├─────────────────────────────────────────┤
+│          Repository Pattern             │
+├─────────────────────────────────────────┤
+│       Embedded SQLite Database          │
+│    (~/.local/share/claude-context-      │
+│         tracker/tracker.db)             │
+└─────────────────────────────────────────┘
+```
 
-### Running as System Service
+### Fact Extraction Engine
 
-**Note:** If you installed via .deb, PocketBase is already running as a system service.
+**Detected Fact Types:**
+- **Decisions** - `"decided to..."`, `"we're using..."`, `"chose..."`
+- **Blockers** - `"blocked by..."`, `"can't proceed..."`, `"waiting for..."`
+- **TODOs** - `"TODO:"`, `"need to..."`, `"should implement..."`
+- **File Changes** - `"created file..."`, `"modified..."`, `"renamed..."`
+- **Dependencies** - `"added dependency..."`, `"using library..."`
+- **Insights** - `"learned that..."`, `"discovered..."`, `"realized..."`
 
-To configure the daemon as a system service:
+**Importance Scoring:**
+```rust
+Base Scores:
+- Blocker: 5 (always high priority)
+- Decision/Dependency: 4
+- TODO/FileChange/Insight: 3
+
+Bonuses:
++ Content analysis (critical, urgent, security, breaking): +1-2
++ Recency bonus (< 1 hour old): +1
+```
+
+**Staleness Detection:**
+- **Content-based**: Marks facts with "resolved", "fixed", "done", "completed", "merged", "closed"
+- **Time-based**: Different thresholds per type
+  - Blockers: 3 days
+  - TODOs: 14 days
+  - File Changes: 30 days
+  - Dependencies: 90 days
+  - Decisions: 180 days
+  - Insights: 90 days
+
+### Database Schema
+
+**Projects**: Track multiple development projects
+```sql
+id, name, slug, repo_path, status, priority, tech_stack, description, created, updated
+```
+
+**Context Sections**: Structured markdown sections
+```sql
+id, project, section_type, title, content, order, created, updated
+```
+
+**Extracted Facts**: Automatically detected information
+```sql
+id, project, session, fact_type, content, importance, stale, created, updated
+```
+
+**Session History**: Conversation tracking
+```sql
+id, project, summary, facts_extracted, token_count, session_start, session_end, created
+```
+
+## Development
+
+### Project Structure
+
+```
+CCD/
+├── gtk4-app/           # Main Rust application
+│   ├── src/
+│   │   ├── main.rs     # Entry point (GUI/CLI/daemon modes)
+│   │   ├── window.rs   # GTK4 main window
+│   │   ├── db/         # Database layer
+│   │   ├── models/     # Data models
+│   │   ├── views/      # GTK4 view components
+│   │   ├── monitor/    # Log monitoring & fact extraction
+│   │   ├── cli/        # CLI commands
+│   │   └── utils/      # Utilities
+│   ├── resources/      # CSS, desktop files, icons
+│   └── Cargo.toml      # Dependencies & deb metadata
+├── .github/
+│   └── workflows/
+│       └── release.yml # Automated .deb builds
+└── README.md
+```
+
+### Building
 
 ```bash
-# Copy the template (already done if you used .deb)
-sudo cp /usr/share/cct/cct-daemon.service.template /etc/systemd/system/cct-daemon.service
+cd gtk4-app
 
-# Edit with your project ID and repo path
-sudo nano /etc/systemd/system/cct-daemon.service
+# Development build
+cargo build
 
-# Enable and start
-sudo systemctl enable cct-daemon
-sudo systemctl start cct-daemon
+# Release build (optimized)
+cargo build --release
 
-# Check status
-sudo systemctl status cct-daemon
+# Run GUI
+cargo run -- gui
+
+# Run CLI
+cargo run -- pull myproject
+
+# Run tests
+cargo test
+
+# Format code
+cargo fmt
+
+# Lint
+cargo clippy
+
+# Build .deb package
+cargo deb
 ```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests and formatting (`cargo test && cargo fmt`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to your branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
+
+## Configuration
+
+### Database Location
+
+Default: `~/.local/share/claude-context-tracker/tracker.db`
+
+The database is created automatically on first run.
+
+### Claude Code Logs
+
+Default: `~/.claude/logs/`
+
+Override with `--logs-dir` flag:
+```bash
+claude-context-tracker monitor myproject --logs-dir /custom/logs
+```
+
+### Desktop Integration
+
+Desktop file location: `/usr/share/applications/com.github.claudecontexttracker.desktop`
+
+Icon location: Inherited from system theme
+
+## Troubleshooting
+
+### Application won't start
+
+```bash
+# Check if GTK4 is installed
+pkg-config --modversion gtk4
+
+# Should be >= 4.12
+# If not: sudo apt install libgtk-4-1 libadwaita-1-0
+```
+
+### Database errors
+
+```bash
+# Reset database (WARNING: deletes all data)
+rm ~/.local/share/claude-context-tracker/tracker.db
+
+# Restart application to recreate
+```
+
+### Monitoring not working
+
+```bash
+# Check Claude Code logs directory exists
+ls ~/.claude/logs/
+
+# Run in debug mode
+RUST_LOG=debug claude-context-tracker monitor myproject
+```
+
+## Roadmap
+
+- [x] Settings dialog (database location, auto-start monitoring)
+- [x] Keyboard shortcuts (Ctrl+N for new project, Ctrl+F for search)
+- [x] Context menus (right-click actions)
+- [x] Desktop notifications (new facts, token thresholds)
+- [ ] Export to PDF/HTML
+- [ ] Flatpak packaging
+- [ ] Search and filtering
+- [ ] Dark mode toggle
+- [ ] Multi-project monitoring
 
 ## License
 
-MIT License
+MIT License - see [LICENSE](LICENSE) file for details
+
+## Credits
+
+Built with:
+- [GTK4](https://gtk.org/) - Modern cross-platform UI toolkit
+- [libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/) - GNOME design patterns
+- [rusqlite](https://github.com/rusqlite/rusqlite) - SQLite bindings for Rust
+- [clap](https://github.com/clap-rs/clap) - Command line argument parsing
+- [notify](https://github.com/notify-rs/notify) - File system monitoring
+- [notify-rust](https://github.com/hoodie/notify-rust) - Desktop notifications
+
+Inspired by the need to maintain context across long Claude Code conversations.

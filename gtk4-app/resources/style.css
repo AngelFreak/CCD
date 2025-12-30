@@ -1,0 +1,411 @@
+/* Claude Context Tracker GTK4 Stylesheet */
+
+/* Claude-inspired color palette */
+@define-color claude_orange #D97757;
+@define-color claude_beige #F5F1ED;
+@define-color claude_dark #2C2416;
+@define-color claude_accent #CC785C;
+
+/* Monitoring toggle styling */
+.monitor-label {
+    font-weight: 600;
+    font-size: 0.95em;
+    margin-right: 8px;
+}
+
+.monitoring-active {
+    color: @claude_orange;
+    font-weight: 700;
+}
+
+/* Improved header bar */
+headerbar {
+    border-bottom: 2px solid alpha(@claude_accent, 0.2);
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: @success_bg_color;
+    color: @success_fg_color;
+}
+
+.status-paused {
+    background-color: @warning_bg_color;
+    color: @warning_fg_color;
+}
+
+.status-idea {
+    background-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+.status-archived {
+    background-color: @error_bg_color;
+    color: @error_fg_color;
+}
+
+/* Project cards with Claude-inspired styling */
+.project-card {
+    padding: 20px;
+    margin: 12px;
+    border-radius: 16px;
+    background-color: @card_bg_color;
+    border: 2px solid alpha(@claude_accent, 0.15);
+    transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 2px 4px alpha(@claude_dark, 0.05);
+}
+
+.project-card:hover {
+    background-color: alpha(@claude_beige, 0.3);
+    border-color: @claude_accent;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px alpha(@claude_dark, 0.12);
+}
+
+.project-card-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.project-card-subtitle {
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.project-card-description {
+    font-size: 0.95em;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+/* Tech stack chips */
+.tech-chip {
+    padding: 4px 10px;
+    margin: 2px;
+    border-radius: 8px;
+    background-color: alpha(@accent_bg_color, 0.3);
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+/* Importance stars */
+.importance-stars {
+    font-size: 1.1em;
+    color: @warning_color;
+}
+
+.importance-high {
+    color: @success_color;
+}
+
+.importance-low {
+    opacity: 0.5;
+}
+
+/* Fact type badges with Claude colors */
+.fact-badge {
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 0.8em;
+    font-weight: 700;
+    margin-right: 8px;
+    letter-spacing: 0.02em;
+}
+
+.fact-decision {
+    background-color: alpha(@success_bg_color, 0.3);
+    color: @success_fg_color;
+    border: 1px solid alpha(@success_bg_color, 0.5);
+}
+
+.fact-blocker {
+    background-color: alpha(@error_bg_color, 0.3);
+    color: @error_fg_color;
+    border: 1px solid alpha(@error_bg_color, 0.5);
+}
+
+.fact-todo {
+    background-color: alpha(@claude_orange, 0.2);
+    color: @claude_dark;
+    border: 1px solid alpha(@claude_orange, 0.4);
+}
+
+.fact-file-change {
+    background-color: alpha(@claude_accent, 0.2);
+    color: @claude_dark;
+    border: 1px solid alpha(@claude_accent, 0.4);
+}
+
+.fact-dependency {
+    background-color: alpha(@warning_bg_color, 0.3);
+    color: @warning_fg_color;
+    border: 1px solid alpha(@warning_bg_color, 0.5);
+}
+
+.fact-insight {
+    background-color: alpha(@claude_beige, 0.6);
+    color: @claude_dark;
+    border: 1px solid alpha(@claude_accent, 0.3);
+}
+
+/* Stale fact indicator */
+.fact-stale {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+/* Token usage progress bar */
+.token-progress {
+    min-height: 24px;
+}
+
+.token-progress-normal {
+    background-color: @success_color;
+}
+
+.token-progress-warning {
+    background-color: @warning_color;
+}
+
+.token-progress-critical {
+    background-color: @error_color;
+}
+
+/* Session cards */
+.session-card {
+    padding: 12px;
+    margin: 4px 0;
+    border-radius: 8px;
+    border: 1px solid alpha(@borders, 0.3);
+}
+
+.session-active {
+    border-color: @success_color;
+    border-width: 2px;
+}
+
+/* Context section */
+.section-header {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.section-content {
+    padding: 12px;
+    background-color: alpha(@card_bg_color, 0.5);
+    border-radius: 8px;
+    border: 1px solid alpha(@borders, 0.3);
+    font-family: monospace;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 48px;
+    text-align: center;
+    opacity: 0.6;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.empty-state-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.empty-state-subtitle {
+    font-size: 1em;
+    opacity: 0.7;
+}
+
+/* Scrolled window styling */
+.scrolled-content {
+    background-color: @window_bg_color;
+}
+
+/* List styling with improved spacing */
+.project-list {
+    background-color: transparent;
+    padding: 8px;
+}
+
+.project-list row {
+    border-radius: 12px;
+    margin: 6px 12px;
+    padding: 4px;
+    transition: all 200ms ease;
+}
+
+.project-list row:hover {
+    background-color: alpha(@claude_beige, 0.2);
+}
+
+/* Tab styling */
+.tab-content {
+    padding: 16px;
+}
+
+/* Sidebar styling */
+.sidebar {
+    border-left: 1px solid @borders;
+    background-color: @sidebar_bg_color;
+}
+
+.sidebar-section {
+    padding: 12px;
+}
+
+.sidebar-title {
+    font-weight: bold;
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+/* Form styling */
+.form-row {
+    margin-bottom: 12px;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+/* Button groups */
+.button-group {
+    margin-top: 16px;
+}
+
+.button-group button {
+    margin-right: 8px;
+}
+
+/* Priority indicator */
+.priority-high {
+    color: @error_color;
+}
+
+.priority-medium {
+    color: @warning_color;
+}
+
+.priority-low {
+    color: @success_color;
+}
+
+/* Markdown preview */
+.markdown-preview {
+    padding: 16px;
+    background-color: @card_bg_color;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+}
+
+/* Toast styling (inherited from libadwaita) */
+toast {
+    border-radius: 8px;
+}
+
+/* Spinner styling */
+.loading-spinner {
+    margin: 32px;
+}
+
+/* Toolbar styling */
+.toolbar {
+    background-color: @headerbar_bg_color;
+    border-bottom: 1px solid @borders;
+    padding: 8px;
+}
+
+/* Action row subtitle */
+row subtitle {
+    opacity: 0.7;
+}
+
+/* Compact mode for dense information */
+.compact row {
+    padding: 4px;
+}
+
+.compact label {
+    font-size: 0.9em;
+}
+
+/* Typography hierarchy - Claude-inspired */
+.heading {
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+}
+
+.title-1 {
+    font-size: 1.8em;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+.title-2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+}
+
+.title-3 {
+    font-size: 1.15em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+}
+
+/* Improved button styling */
+button.flat {
+    border-radius: 10px;
+    padding: 8px 12px;
+    transition: all 200ms ease;
+}
+
+button.flat:hover {
+    background-color: alpha(@claude_accent, 0.12);
+}
+
+button.suggested-action {
+    background-color: @claude_orange;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+button.suggested-action:hover {
+    background-color: alpha(@claude_orange, 0.9);
+}
+
+/* Improved spacing and visual hierarchy */
+.dim-label {
+    opacity: 0.65;
+    font-size: 0.95em;
+}
+
+.caption {
+    font-size: 0.9em;
+    opacity: 0.75;
+}
