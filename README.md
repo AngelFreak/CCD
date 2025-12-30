@@ -17,9 +17,25 @@ Track and manage context for your Claude Code projects. Never lose important det
 
 ## Installation (Ubuntu/Linux)
 
-### Option 1: Install .deb Package (Recommended)
+### Option 1: Download Pre-built Package (Easiest)
 
 **Prerequisites:** Node.js 18+ (for frontend development)
+
+```bash
+# Download the latest .deb package from GitHub releases
+wget https://github.com/AngelFreak/CCD/releases/latest/download/cct_1.0.0_amd64.deb
+
+# Install the package
+sudo apt install ./cct_1.0.0_amd64.deb
+```
+
+Or visit the [Releases page](https://github.com/AngelFreak/CCD/releases) to download manually.
+
+---
+
+### Option 2: Build from Source
+
+**Prerequisites:** Node.js 18+, Go 1.21+
 
 ```bash
 # Clone the repository
@@ -59,7 +75,7 @@ sudo systemctl start cct-daemon
 
 ---
 
-### Option 2: Manual Installation
+### Option 3: Manual Installation (Advanced)
 
 **Prerequisites:** Node.js 18+, Go 1.21+
 
