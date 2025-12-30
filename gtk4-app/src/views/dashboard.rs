@@ -138,33 +138,22 @@ impl DashboardView {
 
         row.add_suffix(&status_box);
 
-        // Add description if available
+        // Add description as subtitle if available
         if let Some(desc) = &project.description {
-            let desc_label = gtk::Label::new(Some(desc));
-            desc_label.set_wrap(true);
-            desc_label.set_xalign(0.0);
-            desc_label.add_css_class("dim-label");
-            desc_label.set_margin_top(4);
-            row.add_row(&desc_label);
+            row.set_subtitle(desc.as_str());
         }
 
         // Make row activatable
         row.set_activatable(true);
 
-        // Handle click to navigate to project detail
-        let project_id = project.id.clone();
-        row.connect_activated(move |_| {
-            log::info!("Navigating to project: {}", project_id);
-            // This will be handled by the window's navigation logic
-            // For now, just log it
-        });
-
         let list_row = gtk::ListBoxRow::new();
         list_row.set_child(Some(&row));
         list_row.set_activatable(true);
 
+        // Handle click to navigate to project detail
         let project_id = project.id.clone();
-        list_row.connect_activated(move |_| {
+        let list_row_for_activation = list_row.clone();
+        row.connect_activated(move |_| {
             log::info!("Project row activated: {}", project_id);
             // Navigation will be wired up through callbacks
         });

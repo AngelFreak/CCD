@@ -12,6 +12,7 @@ use anyhow::Result;
 use clap::Parser;
 use cli::{Cli, Commands};
 use db::{Database, Repository};
+use window::MainWindow;
 
 const APP_ID: &str = "com.github.claudecontexttracker";
 
@@ -81,7 +82,6 @@ fn run_daemon_mode(repository: Repository, project: String, logs_dir: Option<Str
 /// Run in GUI mode
 fn run_gui_mode(repository: Repository) -> Result<()> {
     use adw::prelude::*;
-    use window::MainWindow;
 
     log::info!("Starting GUI mode");
 
@@ -111,7 +111,7 @@ fn run_gui_mode(repository: Repository) -> Result<()> {
     // Run the application
     let exit_code = app.run();
 
-    log::info!("Application exiting with code: {}", exit_code);
+    log::info!("Application exiting with code: {:?}", exit_code);
     Ok(())
 }
 
@@ -127,7 +127,7 @@ fn build_ui(app: &adw::Application, repository: Repository) {
 /// Load custom CSS for styling
 fn load_css() {
     let provider = gtk::CssProvider::new();
-    provider.load_from_data(include_str!("../resources/style.css"));
+    provider.load_from_string(include_str!("../resources/style.css"));
 
     gtk::style_context_add_provider_for_display(
         &gtk::gdk::Display::default().expect("Could not connect to a display"),

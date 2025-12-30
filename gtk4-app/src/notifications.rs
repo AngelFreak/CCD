@@ -5,7 +5,7 @@ use std::path::PathBuf;
 const APP_ICON: &str = "com.github.claudecontexttracker";
 
 /// Notification timeout (in milliseconds)
-const NOTIFICATION_TIMEOUT: i32 = 5000;
+const NOTIFICATION_TIMEOUT: u32 = 5000;
 
 /// Send a notification when new facts are extracted
 pub fn notify_facts_extracted(project_name: &str, fact_count: usize) {

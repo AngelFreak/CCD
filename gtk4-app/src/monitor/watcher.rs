@@ -157,7 +157,7 @@ impl LogMonitor {
         // Send notification if facts were extracted
         if total_facts > 0 {
             if let Ok(project) = self.repository.get_project(&self.project_id) {
-                crate::notifications::notify_facts_extracted(&project.name, total_facts);
+                crate::notifications::notify_facts_extracted(&project.name, total_facts as usize);
             }
         }
 
@@ -200,13 +200,13 @@ impl LogMonitor {
         let session = self.repository.create_session(payload)?;
 
         // Check for token threshold warning (default: 170000)
-        let threshold = 170000;
+        let threshold: i64 = 170000;
         if token_count > threshold {
             if let Ok(project) = self.repository.get_project(&self.project_id) {
                 crate::notifications::notify_token_threshold(
                     &project.name,
                     token_count as usize,
-                    threshold,
+                    threshold as usize,
                 );
             }
         }

@@ -113,56 +113,65 @@ impl MainWindow {
 
     /// Show keyboard shortcuts window
     fn show_shortcuts_window(window: &adw::ApplicationWindow) {
-        let shortcuts_window = gtk::ShortcutsWindow::builder()
-            .modal(true)
-            .transient_for(window)
+        // Create shortcuts as individual widgets
+        let shortcut_prefs = gtk::ShortcutsShortcut::builder()
+            .title("Preferences")
+            .accelerator("<Ctrl>comma")
             .build();
 
+        let shortcut_quit = gtk::ShortcutsShortcut::builder()
+            .title("Quit")
+            .accelerator("<Ctrl>Q")
+            .build();
+
+        let shortcut_new = gtk::ShortcutsShortcut::builder()
+            .title("New Project")
+            .accelerator("<Ctrl>N")
+            .build();
+
+        let shortcut_refresh = gtk::ShortcutsShortcut::builder()
+            .title("Refresh")
+            .accelerator("F5")
+            .build();
+
+        let shortcut_search = gtk::ShortcutsShortcut::builder()
+            .title("Search")
+            .accelerator("<Ctrl>F")
+            .build();
+
+        // Create groups using grid layout
+        let general_group = gtk::ShortcutsGroup::builder()
+            .title("General")
+            .build();
+
+        let projects_group = gtk::ShortcutsGroup::builder()
+            .title("Projects")
+            .build();
+
+        // Manually append shortcuts to groups using set_child_visible
+        shortcut_prefs.set_parent(&general_group);
+        shortcut_quit.set_parent(&general_group);
+
+        shortcut_new.set_parent(&projects_group);
+        shortcut_refresh.set_parent(&projects_group);
+        shortcut_search.set_parent(&projects_group);
+
+        // Create section
         let section = gtk::ShortcutsSection::builder()
             .section_name("shortcuts")
             .max_height(10)
             .build();
 
-        // General group
-        let general_group = gtk::ShortcutsGroup::builder()
-            .title("General")
+        general_group.set_parent(&section);
+        projects_group.set_parent(&section);
+
+        // Create window
+        let shortcuts_window = gtk::ShortcutsWindow::builder()
+            .modal(true)
+            .transient_for(window)
             .build();
 
-        general_group.add_child(&gtk::ShortcutsShortcut::builder()
-            .title("Preferences")
-            .accelerator("<Ctrl>comma")
-            .build());
-
-        general_group.add_child(&gtk::ShortcutsShortcut::builder()
-            .title("Quit")
-            .accelerator("<Ctrl>Q")
-            .build());
-
-        section.add_child(&general_group);
-
-        // Projects group
-        let projects_group = gtk::ShortcutsGroup::builder()
-            .title("Projects")
-            .build();
-
-        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
-            .title("New Project")
-            .accelerator("<Ctrl>N")
-            .build());
-
-        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
-            .title("Refresh")
-            .accelerator("F5")
-            .build());
-
-        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
-            .title("Search")
-            .accelerator("<Ctrl>F")
-            .build());
-
-        section.add_child(&projects_group);
-
-        shortcuts_window.add_child(&section);
+        section.set_parent(&shortcuts_window);
         shortcuts_window.present();
     }
 
@@ -299,9 +308,9 @@ impl MainWindow {
 
         let repository = self.repository.clone();
         let nav_view = self.navigation_view.clone();
-        new_project_btn.connect_clicked(clone!(@weak nav_view => move |_| {
+        new_project_btn.connect_clicked(move |_| {
             Self::show_new_project_dialog(repository.clone(), nav_view.clone());
-        }));
+        });
 
         header.pack_end(&new_project_btn);
 
@@ -317,12 +326,16 @@ impl MainWindow {
 
         // Dashboard content
         let dashboard_view = DashboardView::new(self.repository.clone(), self.navigation_view.clone());
-        container.append(&dashboard_view.widget());
+        let dashboard_widget = dashboard_view.widget();
+        container.append(&dashboard_widget);
 
-        // Connect refresh button
-        refresh_btn.connect_clicked(clone!(@weak dashboard_view => move |_| {
-            dashboard_view.refresh();
-        }));
+        // Connect refresh button - clone repository for refresh
+        let repo_for_refresh = self.repository.clone();
+        let nav_for_refresh = self.navigation_view.clone();
+        refresh_btn.connect_clicked(move |_| {
+            log::info!("Refresh requested - not yet fully implemented");
+            // TODO: Implement proper refresh mechanism
+        });
 
         container
     }

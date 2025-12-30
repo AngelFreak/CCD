@@ -49,11 +49,8 @@ impl ProjectDetailView {
             self.repository.clone(),
             self.project_id.clone(),
         );
-        let context_page = adw::TabPage::builder()
-            .child(&context_editor.widget())
-            .title("Context")
-            .build();
-        tab_view.append(&context_page);
+        let context_page = tab_view.append(&context_editor.widget());
+        context_page.set_title("Context");
 
         // Session History Tab (placeholder)
         let session_box = gtk::Box::new(gtk::Orientation::Vertical, 12);
@@ -66,11 +63,8 @@ impl ProjectDetailView {
         session_label.add_css_class("dim-label");
         session_box.append(&session_label);
 
-        let session_page = adw::TabPage::builder()
-            .child(&session_box)
-            .title("Sessions")
-            .build();
-        tab_view.append(&session_page);
+        let session_page = tab_view.append(&session_box);
+        session_page.set_title("Sessions");
 
         // Compressed Context Tab (placeholder)
         let compressed_box = gtk::Box::new(gtk::Orientation::Vertical, 12);
@@ -83,11 +77,8 @@ impl ProjectDetailView {
         compressed_label.add_css_class("dim-label");
         compressed_box.append(&compressed_label);
 
-        let compressed_page = adw::TabPage::builder()
-            .child(&compressed_box)
-            .title("Compressed")
-            .build();
-        tab_view.append(&compressed_page);
+        let compressed_page = tab_view.append(&compressed_box);
+        compressed_page.set_title("Compressed");
 
         // Tab bar
         let tab_bar = adw::TabBar::builder()
