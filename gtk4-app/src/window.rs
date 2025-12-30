@@ -1,10 +1,13 @@
 use crate::db::Repository;
 use crate::models::Project;
+use crate::monitor::start_background_monitor;
 use crate::views::{DashboardView, ProjectDetailView};
 use adw::prelude::*;
 use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
+use std::sync::Mutex;
 
 /// Navigation state for the application
 #[derive(Debug, Clone, PartialEq)]
@@ -19,6 +22,8 @@ pub struct MainWindow {
     navigation_view: adw::NavigationView,
     repository: Repository,
     state: Rc<RefCell<NavigationState>>,
+    monitoring_active: Rc<RefCell<bool>>,
+    monitor_handle: Arc<Mutex<Option<std::thread::JoinHandle<()>>>>,
 }
 
 impl MainWindow {
@@ -42,6 +47,8 @@ impl MainWindow {
             navigation_view,
             repository,
             state,
+            monitoring_active: Rc::new(RefCell::new(false)),
+            monitor_handle: Arc::new(Mutex::new(None)),
         };
 
         main_window.setup_ui();
@@ -75,7 +82,68 @@ impl MainWindow {
         // Header bar
         let header = adw::HeaderBar::new();
 
-        // Add new project button
+        // Monitoring toggle (left side)
+        let monitor_box = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        monitor_box.set_margin_start(8);
+
+        let monitor_icon = gtk::Image::from_icon_name("emblem-synchronizing-symbolic");
+        monitor_box.append(&monitor_icon);
+
+        let monitor_label = gtk::Label::new(Some("Monitor"));
+        monitor_label.add_css_class("monitor-label");
+        monitor_box.append(&monitor_label);
+
+        let monitor_switch = gtk::Switch::new();
+        monitor_switch.set_tooltip_text(Some("Background monitoring of Claude Code logs"));
+        monitor_box.append(&monitor_switch);
+
+        header.pack_start(&monitor_box);
+
+        // Wire up monitoring toggle
+        let repository_clone = self.repository.clone();
+        let monitoring_active = self.monitoring_active.clone();
+        let monitor_handle = self.monitor_handle.clone();
+        let monitor_label_weak = monitor_label.downgrade();
+
+        monitor_switch.connect_state_set(move |switch, enabled| {
+            log::info!("Monitor toggle: {}", enabled);
+            *monitoring_active.borrow_mut() = enabled;
+
+            if enabled {
+                // Start background monitoring
+                // For now, monitor all projects (could be enhanced to track active project)
+                match start_background_monitor(
+                    "default".to_string(),
+                    repository_clone.clone(),
+                    None,
+                ) {
+                    Ok(handle) => {
+                        *monitor_handle.lock().unwrap() = Some(handle);
+                        log::info!("Background monitoring started");
+                        if let Some(label) = monitor_label_weak.upgrade() {
+                            label.set_text("Monitoring");
+                            label.add_css_class("monitoring-active");
+                        }
+                    }
+                    Err(e) => {
+                        log::error!("Failed to start monitoring: {}", e);
+                        switch.set_active(false);
+                    }
+                }
+            } else {
+                // Stop background monitoring
+                // Note: We can't easily stop the thread, but we log the state change
+                log::info!("Background monitoring stopped (thread continues)");
+                if let Some(label) = monitor_label_weak.upgrade() {
+                    label.set_text("Monitor");
+                    label.remove_css_class("monitoring-active");
+                }
+            }
+
+            glib::Propagation::Proceed
+        });
+
+        // Add new project button (right side)
         let new_project_btn = gtk::Button::builder()
             .icon_name("list-add-symbolic")
             .tooltip_text("Create New Project")
