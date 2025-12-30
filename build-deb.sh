@@ -34,6 +34,11 @@ mkdir -p "${BUILD_DIR}/usr/share/pixmaps"
 mkdir -p "${BUILD_DIR}/etc/systemd/system"
 mkdir -p "${BUILD_DIR}/var/lib/cct/pocketbase"
 
+# Download Go dependencies
+echo -e "${YELLOW}→${NC} Downloading Go dependencies..."
+cd cli && go mod download && cd ..
+cd daemon && go mod download && cd ..
+
 # Build CLI
 echo -e "${YELLOW}→${NC} Building CLI..."
 cd cli
