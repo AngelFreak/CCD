@@ -1,26 +1,25 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::SessionHistory;
 use adw::prelude::*;
-use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 /// Session monitor view showing current session token usage
 pub struct SessionMonitorView {
     container: gtk::Box,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     project_id: String,
     current_session: Rc<RefCell<Option<SessionHistory>>>,
 }
 
 impl SessionMonitorView {
     /// Create a new session monitor view
-    pub fn new(pb_client: SharedPocketBaseClient, project_id: String) -> Self {
+    pub fn new(repository: Repository, project_id: String) -> Self {
         let container = gtk::Box::new(gtk::Orientation::Vertical, 12);
 
         let mut view = Self {
             container,
-            pb_client,
+            repository,
             project_id,
             current_session: Rc::new(RefCell::new(None)),
         };
@@ -105,24 +104,18 @@ impl SessionMonitorView {
 
     /// Load current session
     fn load_current_session(&self) {
-        let pb_client = self.pb_client.clone();
-        let project_id = self.project_id.clone();
-        let current_session = self.current_session.clone();
-
-        glib::spawn_future_local(async move {
-            match pb_client.list_sessions(&project_id).await {
-                Ok(sessions) => {
-                    // Get the most recent active session
-                    let active = sessions.into_iter().find(|s| s.is_active());
-                    *current_session.borrow_mut() = active;
-                    // Update UI with session data
-                    // This would be implemented with proper state management
-                }
-                Err(e) => {
-                    log::error!("Failed to load sessions: {}", e);
-                }
+        match self.repository.list_sessions(&self.project_id) {
+            Ok(sessions) => {
+                // Get the most recent active session
+                let active = sessions.into_iter().find(|s| s.is_active());
+                *self.current_session.borrow_mut() = active;
+                // Update UI with session data
+                // This would be implemented with proper state management
             }
-        });
+            Err(e) => {
+                log::error!("Failed to load sessions: {}", e);
+            }
+        }
     }
 
     /// Update the UI with session data

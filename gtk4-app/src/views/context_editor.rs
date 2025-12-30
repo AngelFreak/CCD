@@ -1,8 +1,7 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::{ContextSection, SectionType};
 use crate::utils::generate_claude_md;
 use adw::prelude::*;
-use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -10,14 +9,14 @@ use std::rc::Rc;
 pub struct ContextEditorView {
     container: gtk::Box,
     sections_list: gtk::ListBox,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     project_id: String,
     sections: Rc<RefCell<Vec<ContextSection>>>,
 }
 
 impl ContextEditorView {
     /// Create a new context editor view
-    pub fn new(pb_client: SharedPocketBaseClient, project_id: String) -> Self {
+    pub fn new(repository: Repository, project_id: String) -> Self {
         let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
         // Create toolbar
@@ -79,7 +78,7 @@ impl ContextEditorView {
         let mut view = Self {
             container,
             sections_list,
-            pb_client,
+            repository,
             project_id,
             sections: Rc::new(RefCell::new(Vec::new())),
         };
@@ -91,22 +90,15 @@ impl ContextEditorView {
 
     /// Load context sections
     fn load_sections(&self) {
-        let pb_client = self.pb_client.clone();
-        let project_id = self.project_id.clone();
-        let sections = self.sections.clone();
-        let sections_list = self.sections_list.clone();
-
-        glib::spawn_future_local(async move {
-            match pb_client.list_context_sections(&project_id).await {
-                Ok(loaded_sections) => {
-                    *sections.borrow_mut() = loaded_sections.clone();
-                    Self::update_sections_list(&sections_list, &loaded_sections);
-                }
-                Err(e) => {
-                    log::error!("Failed to load context sections: {}", e);
-                }
+        match self.repository.list_context_sections(&self.project_id) {
+            Ok(loaded_sections) => {
+                *self.sections.borrow_mut() = loaded_sections.clone();
+                Self::update_sections_list(&self.sections_list, &loaded_sections);
             }
-        });
+            Err(e) => {
+                log::error!("Failed to load context sections: {}", e);
+            }
+        }
     }
 
     /// Update the sections list

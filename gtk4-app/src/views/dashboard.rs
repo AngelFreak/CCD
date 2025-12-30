@@ -1,7 +1,6 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::{Project, ProjectPayload, ProjectStatus};
 use adw::prelude::*;
-use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -9,7 +8,7 @@ use std::rc::Rc;
 pub struct DashboardView {
     container: gtk::Box,
     project_list: gtk::ListBox,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     navigation_view: adw::NavigationView,
     projects: Rc<RefCell<Vec<Project>>>,
     current_filter: Rc<RefCell<Option<ProjectStatus>>>,
@@ -17,7 +16,7 @@ pub struct DashboardView {
 
 impl DashboardView {
     /// Create a new dashboard view
-    pub fn new(pb_client: SharedPocketBaseClient, navigation_view: adw::NavigationView) -> Self {
+    pub fn new(repository: Repository, navigation_view: adw::NavigationView) -> Self {
         let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
         // Create toolbar for filtering
@@ -47,7 +46,7 @@ impl DashboardView {
         let mut view = Self {
             container,
             project_list,
-            pb_client,
+            repository,
             navigation_view,
             projects: Rc::new(RefCell::new(Vec::new())),
             current_filter: Rc::new(RefCell::new(None)),
@@ -75,43 +74,24 @@ impl DashboardView {
         toolbar
     }
 
-    /// Load projects from PocketBase
+    /// Load projects from database
     pub fn load_projects(&self) {
-        let pb_client = self.pb_client.clone();
-        let projects = self.projects.clone();
-        let project_list = self.project_list.clone();
-        let current_filter = self.current_filter.clone();
-        let nav_view = self.navigation_view.clone();
+        let filter = *self.current_filter.borrow();
 
-        // Show loading state
-        self.clear_list();
-        let spinner = gtk::Spinner::new();
-        spinner.set_spinning(true);
-        spinner.add_css_class("loading-spinner");
-        spinner.set_halign(gtk::Align::Center);
-        spinner.set_valign(gtk::Align::Center);
-
-        let spinner_row = gtk::ListBoxRow::new();
-        spinner_row.set_child(Some(&spinner));
-        project_list.append(&spinner_row);
-
-        glib::spawn_future_local(async move {
-            let filter = *current_filter.borrow();
-            match pb_client.list_projects(filter).await {
-                Ok(loaded_projects) => {
-                    *projects.borrow_mut() = loaded_projects.clone();
-                    Self::update_project_list_static(
-                        &project_list,
-                        &loaded_projects,
-                        nav_view,
-                    );
-                }
-                Err(e) => {
-                    log::error!("Failed to load projects: {}", e);
-                    Self::show_error_state(&project_list, &e.to_string());
-                }
+        match self.repository.list_projects(filter) {
+            Ok(loaded_projects) => {
+                *self.projects.borrow_mut() = loaded_projects.clone();
+                Self::update_project_list_static(
+                    &self.project_list,
+                    &loaded_projects,
+                    self.navigation_view.clone(),
+                );
             }
-        });
+            Err(e) => {
+                log::error!("Failed to load projects: {}", e);
+                Self::show_error_state(&self.project_list, &e.to_string());
+            }
+        }
     }
 
     /// Update the project list with loaded projects
@@ -280,7 +260,7 @@ impl Clone for DashboardView {
         Self {
             container: self.container.clone(),
             project_list: self.project_list.clone(),
-            pb_client: self.pb_client.clone(),
+            repository: self.repository.clone(),
             navigation_view: self.navigation_view.clone(),
             projects: self.projects.clone(),
             current_filter: self.current_filter.clone(),

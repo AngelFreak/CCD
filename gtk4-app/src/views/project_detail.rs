@@ -1,15 +1,14 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::{ContextSection, ExtractedFact, Project, SessionHistory};
 use crate::views::{ContextEditorView, FactsListView, SessionMonitorView};
 use adw::prelude::*;
-use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 /// Project detail view with tabbed interface
 pub struct ProjectDetailView {
     container: gtk::Box,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     project_id: String,
     project: Rc<RefCell<Option<Project>>>,
 }
@@ -17,7 +16,7 @@ pub struct ProjectDetailView {
 impl ProjectDetailView {
     /// Create a new project detail view
     pub fn new(
-        pb_client: SharedPocketBaseClient,
+        repository: Repository,
         project_id: String,
         _navigation_view: adw::NavigationView,
     ) -> Self {
@@ -25,7 +24,7 @@ impl ProjectDetailView {
 
         let mut view = Self {
             container,
-            pb_client,
+            repository,
             project_id,
             project: Rc::new(RefCell::new(None)),
         };
@@ -47,7 +46,7 @@ impl ProjectDetailView {
 
         // Context Editor Tab
         let context_editor = ContextEditorView::new(
-            self.pb_client.clone(),
+            self.repository.clone(),
             self.project_id.clone(),
         );
         let context_page = adw::TabPage::builder()
@@ -130,7 +129,7 @@ impl ProjectDetailView {
         monitor_title.set_xalign(0.0);
         monitor_section.append(&monitor_title);
 
-        let session_monitor = SessionMonitorView::new(self.pb_client.clone(), self.project_id.clone());
+        let session_monitor = SessionMonitorView::new(self.repository.clone(), self.project_id.clone());
         monitor_section.append(&session_monitor.widget());
 
         sidebar_content.append(&monitor_section);
@@ -142,7 +141,7 @@ impl ProjectDetailView {
         facts_title.set_xalign(0.0);
         facts_section.append(&facts_title);
 
-        let facts_list = FactsListView::new(self.pb_client.clone(), self.project_id.clone());
+        let facts_list = FactsListView::new(self.repository.clone(), self.project_id.clone());
         facts_section.append(&facts_list.widget());
 
         sidebar_content.append(&facts_section);
@@ -155,21 +154,15 @@ impl ProjectDetailView {
 
     /// Load project details
     fn load_project(&self) {
-        let pb_client = self.pb_client.clone();
-        let project_id = self.project_id.clone();
-        let project = self.project.clone();
-
-        glib::spawn_future_local(async move {
-            match pb_client.get_project(&project_id).await {
-                Ok(loaded_project) => {
-                    log::info!("Loaded project: {}", loaded_project.name);
-                    *project.borrow_mut() = Some(loaded_project);
-                }
-                Err(e) => {
-                    log::error!("Failed to load project: {}", e);
-                }
+        match self.repository.get_project(&self.project_id) {
+            Ok(loaded_project) => {
+                log::info!("Loaded project: {}", loaded_project.name);
+                *self.project.borrow_mut() = Some(loaded_project);
             }
-        });
+            Err(e) => {
+                log::error!("Failed to load project: {}", e);
+            }
+        }
     }
 
     /// Get the widget

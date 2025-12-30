@@ -1,7 +1,6 @@
-use crate::api::SharedPocketBaseClient;
+use crate::db::Repository;
 use crate::models::ExtractedFact;
 use adw::prelude::*;
-use gtk::glib;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -9,14 +8,14 @@ use std::rc::Rc;
 pub struct FactsListView {
     container: gtk::Box,
     facts_list: gtk::ListBox,
-    pb_client: SharedPocketBaseClient,
+    repository: Repository,
     project_id: String,
     facts: Rc<RefCell<Vec<ExtractedFact>>>,
 }
 
 impl FactsListView {
     /// Create a new facts list view
-    pub fn new(pb_client: SharedPocketBaseClient, project_id: String) -> Self {
+    pub fn new(repository: Repository, project_id: String) -> Self {
         let container = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
         // Create scrolled window
@@ -37,7 +36,7 @@ impl FactsListView {
         let mut view = Self {
             container,
             facts_list,
-            pb_client,
+            repository,
             project_id,
             facts: Rc::new(RefCell::new(Vec::new())),
         };
@@ -47,26 +46,19 @@ impl FactsListView {
         view
     }
 
-    /// Load facts from PocketBase
+    /// Load facts from database
     fn load_facts(&self) {
-        let pb_client = self.pb_client.clone();
-        let project_id = self.project_id.clone();
-        let facts = self.facts.clone();
-        let facts_list = self.facts_list.clone();
-
-        glib::spawn_future_local(async move {
-            match pb_client.list_facts(&project_id, false).await {
-                Ok(loaded_facts) => {
-                    // Take top 10 most important facts
-                    let top_facts: Vec<_> = loaded_facts.into_iter().take(10).collect();
-                    *facts.borrow_mut() = top_facts.clone();
-                    Self::update_facts_list(&facts_list, &top_facts);
-                }
-                Err(e) => {
-                    log::error!("Failed to load facts: {}", e);
-                }
+        match self.repository.list_facts(&self.project_id, false) {
+            Ok(loaded_facts) => {
+                // Take top 10 most important facts
+                let top_facts: Vec<_> = loaded_facts.into_iter().take(10).collect();
+                *self.facts.borrow_mut() = top_facts.clone();
+                Self::update_facts_list(&self.facts_list, &top_facts);
             }
-        });
+            Err(e) => {
+                log::error!("Failed to load facts: {}", e);
+            }
+        }
     }
 
     /// Update the facts list
