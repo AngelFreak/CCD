@@ -42,6 +42,18 @@ dirs = "5.0"
 # UUID generation for record IDs
 uuid = { version = "1.6", features = ["v4", "serde"] }
 
+# CLI argument parsing
+clap = { version = "4.4", features = ["derive", "cargo"] }
+
+# File system monitoring for Claude Code logs
+notify = "6.1"
+
+# Regex for fact extraction
+regex = "1.10"
+
+# Home directory detection
+home = "0.5"
+
 [build-dependencies]
 glib-build-tools = "0.19"
 

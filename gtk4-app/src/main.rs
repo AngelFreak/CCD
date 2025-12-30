@@ -1,14 +1,15 @@
+mod cli;
 mod db;
 mod models;
+mod monitor;
 mod utils;
 mod views;
 mod window;
 
-use adw::prelude::*;
 use anyhow::Result;
+use clap::Parser;
+use cli::{Cli, Commands};
 use db::{Database, Repository};
-use std::sync::Arc;
-use window::MainWindow;
 
 const APP_ID: &str = "com.github.claudecontexttracker";
 
@@ -16,7 +17,71 @@ fn main() -> Result<()> {
     // Initialize logger
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    log::info!("Starting Claude Context Tracker GTK4 application");
+    // Parse command line arguments
+    let cli = Cli::parse();
+
+    // Initialize database (always needed)
+    let database = Database::new(None)?;
+    let repository = Repository::new(database.into_shared());
+
+    // Execute based on command (or launch GUI if no command)
+    match cli.command {
+        Some(Commands::Pull { project, output }) => {
+            cli::commands::pull_command(&repository, &project, output)?;
+        }
+        Some(Commands::Push { project, summary, tokens }) => {
+            cli::commands::push_command(&repository, &project, summary, tokens)?;
+        }
+        Some(Commands::Status { project }) => {
+            cli::commands::status_command(&repository, project)?;
+        }
+        Some(Commands::List { status }) => {
+            cli::commands::list_command(&repository, status)?;
+        }
+        Some(Commands::New { name, repo, tech, description }) => {
+            cli::commands::new_command(&repository, name, repo, tech, description)?;
+        }
+        Some(Commands::Diff { project, from, to }) => {
+            cli::commands::diff_command(&repository, &project, from, to)?;
+        }
+        Some(Commands::Monitor { project, logs_dir }) => {
+            run_daemon_mode(repository, project, logs_dir)?;
+        }
+        Some(Commands::Switch { .. }) => {
+            println!("Switch command not yet implemented");
+        }
+        Some(Commands::Gui) | None => {
+            // Default: launch GUI
+            run_gui_mode(repository)?;
+        }
+    }
+
+    Ok(())
+}
+
+/// Run in daemon mode (file monitoring only)
+fn run_daemon_mode(repository: Repository, project: String, logs_dir: Option<String>) -> Result<()> {
+    log::info!("Starting daemon mode for project: {}", project);
+
+    // Find project
+    let proj = cli::commands::find_project(&repository, &project)?;
+
+    // Convert logs_dir to PathBuf
+    let logs_path = logs_dir.map(std::path::PathBuf::from);
+
+    // Start monitoring (blocking)
+    let monitor = monitor::LogMonitor::new(proj.id, repository, logs_path)?;
+    monitor.start_monitoring()?;
+
+    Ok(())
+}
+
+/// Run in GUI mode
+fn run_gui_mode(repository: Repository) -> Result<()> {
+    use adw::prelude::*;
+    use window::MainWindow;
+
+    log::info!("Starting GUI mode");
 
     // Initialize GTK
     gtk::init().expect("Failed to initialize GTK");
@@ -35,7 +100,11 @@ fn main() -> Result<()> {
         load_css();
     });
 
-    app.connect_activate(build_ui);
+    // Build UI on activate
+    let repo_clone = repository.clone();
+    app.connect_activate(move |app| {
+        build_ui(app, repo_clone.clone());
+    });
 
     // Run the application
     let exit_code = app.run();
@@ -45,24 +114,8 @@ fn main() -> Result<()> {
 }
 
 /// Build the main UI
-fn build_ui(app: &adw::Application) {
+fn build_ui(app: &adw::Application, repository: Repository) {
     log::info!("Building UI");
-
-    // Create embedded database
-    let database = match Database::new(None) {
-        Ok(db) => {
-            log::info!("Database initialized at: {}", db.db_path().display());
-            db
-        }
-        Err(e) => {
-            log::error!("Failed to initialize database: {}", e);
-            show_error_dialog(app, "Database Initialization Failed", &e.to_string());
-            return;
-        }
-    };
-
-    // Create repository for database operations
-    let repository = Repository::new(database.into_shared());
 
     // Create main window
     let window = MainWindow::new(app, repository);
@@ -81,25 +134,4 @@ fn load_css() {
     );
 
     log::info!("CSS loaded");
-}
-
-/// Show an error dialog
-fn show_error_dialog(app: &adw::Application, title: &str, message: &str) {
-    let dialog = adw::AlertDialog::builder()
-        .heading(title)
-        .body(message)
-        .build();
-
-    dialog.add_response("ok", "OK");
-    dialog.set_default_response(Some("ok"));
-
-    // Show dialog on the active window or create a temporary one
-    if let Some(window) = app.active_window() {
-        dialog.present(Some(&window));
-    } else {
-        let temp_window = adw::ApplicationWindow::builder()
-            .application(app)
-            .build();
-        dialog.present(Some(&temp_window));
-    }
 }
