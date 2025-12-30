@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    purge)
+        # Remove user data (only on purge, not on remove)
+        rm -rf /var/lib/cct
+        rm -rf /var/log/cct
+
+        # Remove cct user
+        if id -u cct >/dev/null 2>&1; then
+            userdel cct || true
+        fi
+
+        # Reload systemd
+        systemctl daemon-reload || true
+
+        echo "CCT data has been purged from the system."
+        ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        ;;
+
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

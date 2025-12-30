@@ -1,0 +1,17 @@
+[Unit]
+Description=Claude Context Tracker - Daemon
+Documentation=https://github.com/AngelFreak/CCD
+After=network.target cct-pocketbase.service
+Requires=cct-pocketbase.service
+
+[Service]
+Type=simple
+User=%USERNAME%
+Group=%USERNAME%
+# Edit the following line with your project ID and repo path
+ExecStart=/usr/bin/cct-daemon -project YOUR_PROJECT_ID -repo /path/to/repo
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

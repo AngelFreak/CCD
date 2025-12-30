@@ -1,0 +1,17 @@
+Package: cct
+Version: 1.0.0
+Section: devel
+Priority: optional
+Architecture: amd64
+Depends: systemd
+Recommends: nodejs (>= 18.0.0)
+Maintainer: CCT Maintainers <maintainer@example.com>
+Description: Claude Context Tracker
+ Track and manage context for your Claude Code projects.
+ Never lose important details when conversations get compacted.
+ .
+ This package includes:
+  - Web dashboard for managing projects
+  - CLI tool for quick context operations
+  - Daemon for monitoring Claude Code conversations
+  - PocketBase database backend
