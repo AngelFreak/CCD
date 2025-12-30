@@ -169,7 +169,65 @@ impl DashboardView {
             // Navigation will be wired up through callbacks
         });
 
+        // Add context menu (right-click)
+        let gesture = gtk::GestureClick::new();
+        gesture.set_button(3); // Right click
+
+        let project_name = project.name.clone();
+        let project_id_menu = project.id.clone();
+        gesture.connect_pressed(move |gesture, _, _, _| {
+            let widget = gesture.widget();
+            Self::show_project_context_menu(&widget, &project_name, &project_id_menu);
+        });
+
+        list_row.add_controller(gesture);
+
         list_row
+    }
+
+    /// Show context menu for a project
+    fn show_project_context_menu(widget: &gtk::Widget, project_name: &str, project_id: &str) {
+        let menu = gtk::gio::Menu::new();
+
+        // Open menu item
+        menu.append(Some("Open"), Some(&format!("project.open::{}", project_id)));
+
+        // Edit menu item
+        menu.append(Some("Edit Details"), Some(&format!("project.edit::{}", project_id)));
+
+        menu.append_section(None, &{
+            let section = gtk::gio::Menu::new();
+
+            // Pull context
+            section.append(Some("Pull Context to CLAUDE.md"), Some(&format!("project.pull::{}", project_id)));
+
+            // Export
+            section.append(Some("Export..."), Some(&format!("project.export::{}", project_id)));
+
+            section
+        });
+
+        menu.append_section(None, &{
+            let section = gtk::gio::Menu::new();
+
+            // Archive/Activate
+            section.append(Some("Archive Project"), Some(&format!("project.archive::{}", project_id)));
+
+            // Delete
+            section.append(Some("Delete..."), Some(&format!("project.delete::{}", project_id)));
+
+            section
+        });
+
+        let popover = gtk::PopoverMenu::builder()
+            .menu_model(&menu)
+            .has_arrow(false)
+            .build();
+
+        popover.set_parent(widget);
+        popover.popup();
+
+        log::info!("Context menu shown for project: {}", project_name);
     }
 
     /// Show empty state

@@ -73,6 +73,122 @@ impl MainWindow {
 
         // Setup keyboard shortcuts
         self.setup_shortcuts();
+
+        // Setup menu actions
+        self.setup_actions();
+    }
+
+    /// Setup menu actions
+    fn setup_actions(&self) {
+        let app = self.window.application().unwrap();
+
+        // Preferences action
+        let window = self.window.clone();
+        let prefs_action = gtk::gio::SimpleAction::new("preferences", None);
+        prefs_action.connect_activate(move |_, _| {
+            log::info!("Opening preferences");
+            let settings = crate::settings::SettingsDialog::new(&window);
+            settings.present();
+        });
+        app.add_action(&prefs_action);
+
+        // Keyboard shortcuts action
+        let window_clone = self.window.clone();
+        let shortcuts_action = gtk::gio::SimpleAction::new("shortcuts", None);
+        shortcuts_action.connect_activate(move |_, _| {
+            log::info!("Showing keyboard shortcuts");
+            Self::show_shortcuts_window(&window_clone);
+        });
+        app.add_action(&shortcuts_action);
+
+        // About action
+        let window_clone2 = self.window.clone();
+        let about_action = gtk::gio::SimpleAction::new("about", None);
+        about_action.connect_activate(move |_, _| {
+            log::info!("Showing about dialog");
+            Self::show_about_dialog(&window_clone2);
+        });
+        app.add_action(&about_action);
+    }
+
+    /// Show keyboard shortcuts window
+    fn show_shortcuts_window(window: &adw::ApplicationWindow) {
+        let shortcuts_window = gtk::ShortcutsWindow::builder()
+            .modal(true)
+            .transient_for(window)
+            .build();
+
+        let section = gtk::ShortcutsSection::builder()
+            .section_name("shortcuts")
+            .max_height(10)
+            .build();
+
+        // General group
+        let general_group = gtk::ShortcutsGroup::builder()
+            .title("General")
+            .build();
+
+        general_group.add_child(&gtk::ShortcutsShortcut::builder()
+            .title("Preferences")
+            .accelerator("<Ctrl>comma")
+            .build());
+
+        general_group.add_child(&gtk::ShortcutsShortcut::builder()
+            .title("Quit")
+            .accelerator("<Ctrl>Q")
+            .build());
+
+        section.add_child(&general_group);
+
+        // Projects group
+        let projects_group = gtk::ShortcutsGroup::builder()
+            .title("Projects")
+            .build();
+
+        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
+            .title("New Project")
+            .accelerator("<Ctrl>N")
+            .build());
+
+        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
+            .title("Refresh")
+            .accelerator("F5")
+            .build());
+
+        projects_group.add_child(&gtk::ShortcutsShortcut::builder()
+            .title("Search")
+            .accelerator("<Ctrl>F")
+            .build());
+
+        section.add_child(&projects_group);
+
+        shortcuts_window.add_child(&section);
+        shortcuts_window.present();
+    }
+
+    /// Show about dialog
+    fn show_about_dialog(window: &adw::ApplicationWindow) {
+        let about = adw::AboutWindow::builder()
+            .transient_for(window)
+            .application_name("Claude Context Tracker")
+            .application_icon("com.github.claudecontexttracker")
+            .developer_name("Claude Context Tracker Contributors")
+            .version("1.0.0")
+            .comments("Native GTK4 application for managing Claude Code context across projects")
+            .website("https://github.com/AngelFreak/CCD")
+            .issue_url("https://github.com/AngelFreak/CCD/issues")
+            .license_type(gtk::License::MitX11)
+            .build();
+
+        about.add_credit_section(Some("Built with"), &[
+            "GTK4",
+            "libadwaita",
+            "rusqlite",
+            "clap",
+            "notify",
+        ]);
+
+        about.present();
     }
 
     /// Create the dashboard view
@@ -143,10 +259,37 @@ impl MainWindow {
             glib::Propagation::Proceed
         });
 
-        // Add new project button (right side)
+        // Menu button (right side)
+        let menu_button = gtk::MenuButton::builder()
+            .icon_name("open-menu-symbolic")
+            .tooltip_text("Main Menu")
+            .build();
+        menu_button.add_css_class("flat");
+
+        // Create menu
+        let menu = gtk::gio::Menu::new();
+
+        // Preferences menu item
+        let prefs_item = gtk::gio::MenuItem::new(Some("Preferences"), Some("app.preferences"));
+        menu.append_item(&prefs_item);
+
+        // Keyboard shortcuts menu item
+        let shortcuts_item = gtk::gio::MenuItem::new(Some("Keyboard Shortcuts"), Some("app.shortcuts"));
+        menu.append_item(&shortcuts_item);
+
+        menu.append_section(None, &{
+            let section = gtk::gio::Menu::new();
+            section.append(Some("About"), Some("app.about"));
+            section
+        });
+
+        menu_button.set_menu_model(Some(&menu));
+        header.pack_end(&menu_button);
+
+        // Add new project button
         let new_project_btn = gtk::Button::builder()
             .icon_name("list-add-symbolic")
-            .tooltip_text("Create New Project")
+            .tooltip_text("Create New Project (Ctrl+N)")
             .build();
         new_project_btn.add_css_class("flat");
 
@@ -161,7 +304,7 @@ impl MainWindow {
         // Refresh button
         let refresh_btn = gtk::Button::builder()
             .icon_name("view-refresh-symbolic")
-            .tooltip_text("Refresh Projects")
+            .tooltip_text("Refresh Projects (F5)")
             .build();
         refresh_btn.add_css_class("flat");
         header.pack_end(&refresh_btn);
@@ -190,13 +333,43 @@ impl MainWindow {
     fn setup_shortcuts(&self) {
         let shortcuts = gtk::EventControllerKey::new();
 
-        // Ctrl+Q to quit
         let window = self.window.clone();
+        let repository = self.repository.clone();
+        let nav_view = self.navigation_view.clone();
+
         shortcuts.connect_key_pressed(move |_, key, _, modifier| {
             if modifier.contains(gtk::gdk::ModifierType::CONTROL_MASK) {
                 match key {
+                    // Ctrl+Q: Quit
                     gtk::gdk::Key::q => {
                         window.close();
+                        return glib::Propagation::Stop;
+                    }
+                    // Ctrl+N: New project
+                    gtk::gdk::Key::n => {
+                        log::info!("New project (Ctrl+N)");
+                        Self::show_new_project_dialog(repository.clone(), nav_view.clone());
+                        return glib::Propagation::Stop;
+                    }
+                    // Ctrl+,: Preferences
+                    gtk::gdk::Key::comma => {
+                        log::info!("Opening preferences (Ctrl+,)");
+                        let settings = crate::settings::SettingsDialog::new(&window);
+                        settings.present();
+                        return glib::Propagation::Stop;
+                    }
+                    // Ctrl+F: Search (placeholder)
+                    gtk::gdk::Key::f => {
+                        log::info!("Search (Ctrl+F) - not yet implemented");
+                        return glib::Propagation::Stop;
+                    }
+                    _ => {}
+                }
+            } else {
+                match key {
+                    // F5: Refresh
+                    gtk::gdk::Key::F5 => {
+                        log::info!("Refresh (F5) - not yet implemented");
                         return glib::Propagation::Stop;
                     }
                     _ => {}
