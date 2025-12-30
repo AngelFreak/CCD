@@ -18,6 +18,9 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
+          cache-dependency-path: |
+            cli/go.sum
+            daemon/go.sum
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -62,9 +65,11 @@ jobs:
           body: |
             # Claude Context Tracker ${{ steps.version.outputs.version }}
 
+            **Native Ubuntu Application** - No manual setup required! 🎉
+
             ## Installation
 
-            Download the `.deb` package and install:
+            Download and install the `.deb` package:
 
             ```bash
             sudo apt install ./${{ steps.package.outputs.name }}
@@ -72,21 +77,30 @@ jobs:
 
             ## What's Included
 
-            - `cct` - CLI tool
-            - `cct-daemon` - Monitoring daemon
-            - `cct-pocketbase` - Database (auto-starts as systemd service)
-            - Frontend source in `/usr/share/cct/frontend`
+            - ✅ Complete native Ubuntu application
+            - ✅ Desktop launcher in Applications menu (Development → Claude Context Tracker)
+            - ✅ Pre-built web interface (no npm install needed!)
+            - ✅ `cct` - CLI tool
+            - ✅ `cct-daemon` - Monitoring daemon
+            - ✅ `cct-pocketbase` - Database backend (auto-starts as systemd service)
 
-            ## First-time Setup
+            ## Get Started (30 seconds)
 
-            1. Create admin account: http://localhost:8090/_/
-            2. Install frontend dependencies:
-               ```bash
-               cd /usr/share/cct/frontend
-               npm install
-               npm run dev
-               ```
-            3. Access dashboard: http://localhost:5173
+            1. Launch CCT from **Applications menu → Development → Claude Context Tracker**
+               - Or run: `cct-launcher`
+               - Or visit: http://localhost:8090
+
+            2. Create your admin account at http://localhost:8090/_/
+
+            3. Start tracking your projects! 🚀
+
+            ## CLI Commands
+
+            ```bash
+            cct pull <project>       # Pull context to CLAUDE.md
+            cct push <project> ...   # Save session summary
+            cct status               # Show active project
+            ```
 
             For full documentation, see [README.md](https://github.com/AngelFreak/CCD/blob/main/README.md)
           draft: false

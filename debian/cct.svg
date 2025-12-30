@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#6366f1" stroke="#4f46e5" stroke-width="2"/>
+
+  <!-- Document icon -->
+  <rect x="36" y="28" width="56" height="72" rx="4" fill="white" opacity="0.9"/>
+  <line x1="44" y1="44" x2="76" y2="44" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="44" y1="56" x2="84" y2="56" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="44" y1="68" x2="80" y2="68" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+  <line x1="44" y1="80" x2="72" y2="80" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Claude "C" badge -->
+  <circle cx="88" cy="92" r="18" fill="#ec4899" stroke="white" stroke-width="2"/>
+  <text x="88" y="100" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">C</text>
+</svg>

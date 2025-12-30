@@ -17,9 +17,9 @@ Track and manage context for your Claude Code projects. Never lose important det
 
 ## Installation (Ubuntu/Linux)
 
-### Option 1: Download Pre-built Package (Easiest)
+### Option 1: Download Pre-built Package (Easiest) ⭐
 
-**Prerequisites:** Node.js 18+ (for frontend development)
+**Prerequisites:** None! Everything is included and ready to use.
 
 ```bash
 # Download the latest .deb package from GitHub releases
@@ -30,6 +30,20 @@ sudo apt install ./cct_1.0.0_amd64.deb
 ```
 
 Or visit the [Releases page](https://github.com/AngelFreak/CCD/releases) to download manually.
+
+**What you get:**
+- ✅ Complete native Ubuntu application
+- ✅ Desktop launcher in Applications menu (Development → Claude Context Tracker)
+- ✅ Web interface pre-built and ready (no npm setup needed!)
+- ✅ PocketBase backend running as systemd service
+- ✅ CLI tools: `cct`, `cct-daemon`, `cct-launcher`
+
+**First-time setup (30 seconds):**
+1. Launch CCT from Applications menu → **Development** → **Claude Context Tracker**
+   - Or run: `cct-launcher`
+   - Or visit: http://localhost:8090
+2. Create your admin account at http://localhost:8090/_/
+3. Start tracking your projects! 🚀
 
 ---
 
@@ -42,7 +56,7 @@ Or visit the [Releases page](https://github.com/AngelFreak/CCD/releases) to down
 git clone https://github.com/AngelFreak/CCD.git
 cd CCD
 
-# Build the .deb package
+# Build the .deb package (includes frontend build)
 ./build-deb.sh
 
 # Install the package
@@ -53,17 +67,9 @@ sudo apt install ./build/cct_1.0.0_amd64.deb
 - `cct` - CLI tool
 - `cct-daemon` - Monitoring daemon
 - `cct-pocketbase` - Database (auto-starts as systemd service)
-- Frontend source in `/usr/share/cct/frontend`
-
-**First-time setup:**
-1. Create admin account: http://localhost:8090/_/
-2. Install frontend dependencies:
-   ```bash
-   cd /usr/share/cct/frontend
-   npm install
-   npm run dev
-   ```
-3. Access dashboard: http://localhost:5173
+- `cct-launcher` - Desktop launcher script
+- Pre-built frontend in `/usr/share/cct/frontend` (served by PocketBase)
+- Desktop integration files (.desktop, icon)
 
 **Optional - Configure daemon:**
 ```bash
@@ -104,23 +110,28 @@ sudo mv cct-daemon /usr/local/bin/
 
 ## Usage
 
-### Starting the Services
+### Launching CCT
 
-**If you installed via .deb:**
+**If you installed via .deb (recommended):**
 ```bash
-# PocketBase is already running as a system service
-# Just start the frontend
-cd /usr/share/cct/frontend && npm run dev
+# Option 1: Launch from Applications menu
+# Navigate to: Applications → Development → Claude Context Tracker
 
-# Access dashboard at http://localhost:5173
+# Option 2: Use the launcher command
+cct-launcher
+
+# Option 3: Direct browser access
+# Visit: http://localhost:8090
 ```
+
+PocketBase is already running as a system service, and the web interface is pre-built and ready to use!
 
 **If you installed manually:**
 ```bash
 # Terminal 1: Start PocketBase
 cd pocketbase && ./pocketbase serve
 
-# Terminal 2: Start Frontend
+# Terminal 2: Start Frontend (development mode)
 cd frontend && npm run dev
 
 # Terminal 3: Start Daemon (optional)

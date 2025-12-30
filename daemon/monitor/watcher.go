@@ -1,7 +1,6 @@
 package monitor
 
 import (
-	"encoding/json"
 	"log"
 	"os"
 	"path/filepath"
@@ -312,12 +311,4 @@ func (w *Watcher) filterFactsByType(facts []ledger.Fact, factType string) []stri
 	return result
 }
 
-type Conversation struct {
-	Messages []Message `json:"messages"`
-}
-
-type Message struct {
-	Role      string    `json:"role"`
-	Content   string    `json:"content"`
-	Timestamp time.Time `json:"timestamp"`
-}
+// Conversation and Message types moved to types package
