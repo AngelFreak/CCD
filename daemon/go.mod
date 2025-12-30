@@ -2,7 +2,6 @@ module github.com/angelfreak/ccd/daemon
 
 go 1.21
 
-require (
-	github.com/fsnotify/fsnotify v1.7.0
-	github.com/pocketbase/pocketbase v0.20.0
-)
+require github.com/fsnotify/fsnotify v1.7.0
+
+require golang.org/x/sys v0.15.0 // indirect

@@ -163,7 +163,7 @@ func (c *ContextCompressor) Compress(facts []CompressibleFact) []CompressibleFac
 
 	// Keep top N per type by importance and recency
 	var compressed []CompressibleFact
-	for factType, typeFacts := range grouped {
+	for _, typeFacts := range grouped {
 		// Sort by importance (desc) then recency
 		sorted := c.sortByImportance(typeFacts)
 

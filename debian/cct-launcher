@@ -1,0 +1,40 @@
+#!/bin/bash
+# CCT Launcher - Opens Claude Context Tracker in default browser
+
+CCT_URL="http://localhost:8090"
+
+# Check if PocketBase is running
+if ! systemctl is-active --quiet cct-pocketbase.service; then
+    # Try to start it if not running
+    if command -v systemctl &> /dev/null; then
+        notify-send "Claude Context Tracker" "Starting PocketBase service..." -i dialog-information 2>/dev/null || true
+        systemctl start cct-pocketbase.service
+        sleep 2
+    else
+        zenity --error --text="PocketBase service is not running. Please start it with:\nsudo systemctl start cct-pocketbase" 2>/dev/null || \
+        echo "Error: PocketBase service is not running. Start it with: sudo systemctl start cct-pocketbase"
+        exit 1
+    fi
+fi
+
+# Wait for PocketBase to be ready (max 5 seconds)
+for i in {1..10}; do
+    if curl -s -f -o /dev/null "$CCT_URL/_/"; then
+        break
+    fi
+    sleep 0.5
+done
+
+# Open in default browser
+if command -v xdg-open &> /dev/null; then
+    xdg-open "$CCT_URL" &
+elif command -v gnome-open &> /dev/null; then
+    gnome-open "$CCT_URL" &
+elif command -v firefox &> /dev/null; then
+    firefox "$CCT_URL" &
+elif command -v google-chrome &> /dev/null; then
+    google-chrome "$CCT_URL" &
+else
+    notify-send "Claude Context Tracker" "Please open $CCT_URL in your browser" -i dialog-information 2>/dev/null || \
+    echo "Please open $CCT_URL in your browser"
+fi

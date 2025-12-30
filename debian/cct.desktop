@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude Context Tracker
+Comment=Track and manage context for your Claude Code projects
+Exec=/usr/bin/cct-launcher
+Icon=/usr/share/pixmaps/cct.svg
+Terminal=false
+Categories=Development;Utility;
+Keywords=claude;ai;context;development;tracking;
+StartupNotify=true

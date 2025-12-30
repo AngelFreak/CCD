@@ -29,6 +29,8 @@ mkdir -p "${BUILD_DIR}/DEBIAN"
 mkdir -p "${BUILD_DIR}/usr/bin"
 mkdir -p "${BUILD_DIR}/usr/share/cct"
 mkdir -p "${BUILD_DIR}/usr/share/doc/cct"
+mkdir -p "${BUILD_DIR}/usr/share/applications"
+mkdir -p "${BUILD_DIR}/usr/share/pixmaps"
 mkdir -p "${BUILD_DIR}/etc/systemd/system"
 mkdir -p "${BUILD_DIR}/var/lib/cct/pocketbase"
 
@@ -58,11 +60,27 @@ if [ -d "pocketbase/pb_migrations" ]; then
     cp -r pocketbase/pb_migrations "${BUILD_DIR}/var/lib/cct/pocketbase/"
 fi
 
-# Copy frontend source
-echo -e "${YELLOW}→${NC} Copying frontend..."
-cp -r frontend "${BUILD_DIR}/usr/share/cct/"
-# Remove node_modules if exists (will be installed by user)
-rm -rf "${BUILD_DIR}/usr/share/cct/frontend/node_modules"
+# Build frontend
+echo -e "${YELLOW}→${NC} Building frontend..."
+cd frontend
+npm install
+npm run build
+cd ..
+
+# Copy built frontend
+echo -e "${YELLOW}→${NC} Copying built frontend..."
+mkdir -p "${BUILD_DIR}/usr/share/cct/frontend"
+cp -r frontend/dist/* "${BUILD_DIR}/usr/share/cct/frontend/"
+
+# Install launcher script
+echo -e "${YELLOW}→${NC} Installing launcher script..."
+cp debian/cct-launcher "${BUILD_DIR}/usr/bin/"
+chmod 755 "${BUILD_DIR}/usr/bin/cct-launcher"
+
+# Install desktop file and icon
+echo -e "${YELLOW}→${NC} Installing desktop integration..."
+cp debian/cct.desktop "${BUILD_DIR}/usr/share/applications/"
+cp debian/cct.svg "${BUILD_DIR}/usr/share/pixmaps/"
 
 # Copy documentation
 echo -e "${YELLOW}→${NC} Copying documentation..."

@@ -4,14 +4,17 @@ Section: devel
 Priority: optional
 Architecture: amd64
 Depends: systemd
-Recommends: nodejs (>= 18.0.0)
+Recommends: xdg-utils
 Maintainer: CCT Maintainers <maintainer@example.com>
-Description: Claude Context Tracker
+Description: Claude Context Tracker - Native Ubuntu Application
  Track and manage context for your Claude Code projects.
  Never lose important details when conversations get compacted.
  .
- This package includes:
-  - Web dashboard for managing projects
+ This native Ubuntu application includes:
+  - Pre-built web dashboard (no npm setup required!)
+  - Desktop launcher in Applications menu
   - CLI tool for quick context operations
   - Daemon for monitoring Claude Code conversations
-  - PocketBase database backend
+  - PocketBase database backend (auto-starts as systemd service)
+ .
+ Simply install and launch from your Applications menu!

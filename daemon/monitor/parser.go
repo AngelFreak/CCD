@@ -3,6 +3,8 @@ package monitor
 import (
 	"encoding/json"
 	"strings"
+
+	"github.com/angelfreak/ccd/daemon/types"
 )
 
 type Parser struct{}
@@ -11,8 +13,8 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) Parse(data string) (*Conversation, error) {
-	var conv Conversation
+func (p *Parser) Parse(data string) (*types.Conversation, error) {
+	var conv types.Conversation
 
 	// Try to parse as JSON first
 	if err := json.Unmarshal([]byte(data), &conv); err != nil {
@@ -23,14 +25,14 @@ func (p *Parser) Parse(data string) (*Conversation, error) {
 	return &conv, nil
 }
 
-func (p *Parser) parseText(data string) Conversation {
-	conv := Conversation{
-		Messages: []Message{},
+func (p *Parser) parseText(data string) types.Conversation {
+	conv := types.Conversation{
+		Messages: []types.Message{},
 	}
 
 	// Simple line-based parsing
 	lines := strings.Split(data, "\n")
-	var currentMessage *Message
+	var currentMessage *types.Message
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -43,7 +45,7 @@ func (p *Parser) parseText(data string) Conversation {
 			if currentMessage != nil {
 				conv.Messages = append(conv.Messages, *currentMessage)
 			}
-			currentMessage = &Message{
+			currentMessage = &types.Message{
 				Role:    "user",
 				Content: strings.TrimPrefix(strings.TrimPrefix(line, "User:"), "user:"),
 			}
@@ -51,7 +53,7 @@ func (p *Parser) parseText(data string) Conversation {
 			if currentMessage != nil {
 				conv.Messages = append(conv.Messages, *currentMessage)
 			}
-			currentMessage = &Message{
+			currentMessage = &types.Message{
 				Role:    "assistant",
 				Content: strings.TrimPrefix(strings.TrimPrefix(line, "Assistant:"), "assistant:"),
 			}
@@ -67,7 +69,7 @@ func (p *Parser) parseText(data string) Conversation {
 	return conv
 }
 
-func (p *Parser) CountTokens(conv *Conversation) int {
+func (p *Parser) CountTokens(conv *types.Conversation) int {
 	// Simple token estimation: ~4 characters per token
 	total := 0
 	for _, msg := range conv.Messages {

@@ -3,7 +3,7 @@ package extractor
 import (
 	"strings"
 
-	"github.com/angelfreak/ccd/daemon/monitor"
+	"github.com/angelfreak/ccd/daemon/types"
 )
 
 type Fact struct {
@@ -12,7 +12,7 @@ type Fact struct {
 	Importance int
 }
 
-func ExtractFacts(conv *monitor.Conversation) []Fact {
+func ExtractFacts(conv *types.Conversation) []Fact {
 	var facts []Fact
 
 	for _, msg := range conv.Messages {
