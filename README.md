@@ -17,43 +17,70 @@ Track and manage context for your Claude Code projects. Never lose important det
 
 ## Installation (Ubuntu/Linux)
 
-### Prerequisites
+### Option 1: Install .deb Package (Recommended)
 
-- Node.js 18+
-- Go 1.21+
-
-### 1. Setup PocketBase
+**Prerequisites:** Node.js 18+ (for frontend development)
 
 ```bash
+# Clone the repository
+git clone https://github.com/AngelFreak/CCD.git
+cd CCD
+
+# Build the .deb package
+./build-deb.sh
+
+# Install the package
+sudo apt install ./build/cct_1.0.0_amd64.deb
+```
+
+**What gets installed:**
+- `cct` - CLI tool
+- `cct-daemon` - Monitoring daemon
+- `cct-pocketbase` - Database (auto-starts as systemd service)
+- Frontend source in `/usr/share/cct/frontend`
+
+**First-time setup:**
+1. Create admin account: http://localhost:8090/_/
+2. Install frontend dependencies:
+   ```bash
+   cd /usr/share/cct/frontend
+   npm install
+   npm run dev
+   ```
+3. Access dashboard: http://localhost:5173
+
+**Optional - Configure daemon:**
+```bash
+sudo cp /usr/share/cct/cct-daemon.service.template /etc/systemd/system/cct-daemon.service
+sudo nano /etc/systemd/system/cct-daemon.service  # Edit PROJECT_ID and repo path
+sudo systemctl enable cct-daemon
+sudo systemctl start cct-daemon
+```
+
+---
+
+### Option 2: Manual Installation
+
+**Prerequisites:** Node.js 18+, Go 1.21+
+
+```bash
+# 1. Setup PocketBase
 cd pocketbase
 wget https://github.com/pocketbase/pocketbase/releases/latest/download/pocketbase_linux_amd64.zip
 unzip pocketbase_linux_amd64.zip
 ./pocketbase serve
-```
 
-Open http://localhost:8090/_/ and create an admin account.
-
-### 2. Setup Frontend
-
-```bash
+# 2. Setup Frontend
 cd frontend
 npm install
-npm run dev  # Development
-# or
-npm run build  # Production build
-```
+npm run dev
 
-### 3. Build CLI
-
-```bash
+# 3. Build CLI
 cd cli
 go build -o cct
 sudo mv cct /usr/local/bin/
-```
 
-### 4. Build Daemon
-
-```bash
+# 4. Build Daemon
 cd daemon
 go build -o cct-daemon
 sudo mv cct-daemon /usr/local/bin/
@@ -63,6 +90,16 @@ sudo mv cct-daemon /usr/local/bin/
 
 ### Starting the Services
 
+**If you installed via .deb:**
+```bash
+# PocketBase is already running as a system service
+# Just start the frontend
+cd /usr/share/cct/frontend && npm run dev
+
+# Access dashboard at http://localhost:5173
+```
+
+**If you installed manually:**
 ```bash
 # Terminal 1: Start PocketBase
 cd pocketbase && ./pocketbase serve
@@ -73,8 +110,6 @@ cd frontend && npm run dev
 # Terminal 3: Start Daemon (optional)
 cct-daemon -project <project-id> -repo /path/to/repo
 ```
-
-Access the dashboard at http://localhost:5173
 
 ### CLI Commands
 
@@ -98,28 +133,23 @@ cct diff <project>              # Show what changed
 
 ### Running as System Service
 
-To run the daemon automatically, create `/etc/systemd/system/cct-daemon.service`:
+**Note:** If you installed via .deb, PocketBase is already running as a system service.
 
-```ini
-[Unit]
-Description=Claude Context Tracker Daemon
-After=network.target
-
-[Service]
-Type=simple
-User=yourusername
-ExecStart=/usr/local/bin/cct-daemon -project YOUR_PROJECT_ID -repo /path/to/repo
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
+To configure the daemon as a system service:
 
 ```bash
+# Copy the template (already done if you used .deb)
+sudo cp /usr/share/cct/cct-daemon.service.template /etc/systemd/system/cct-daemon.service
+
+# Edit with your project ID and repo path
+sudo nano /etc/systemd/system/cct-daemon.service
+
+# Enable and start
 sudo systemctl enable cct-daemon
 sudo systemctl start cct-daemon
+
+# Check status
+sudo systemctl status cct-daemon
 ```
 
 ## License

@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        # Create cct user if it doesn't exist
+        if ! id -u cct >/dev/null 2>&1; then
+            useradd --system --no-create-home --shell /bin/false cct
+        fi
+
+        # Create necessary directories
+        mkdir -p /var/lib/cct/pocketbase
+        mkdir -p /var/log/cct
+
+        # Set ownership
+        chown -R cct:cct /var/lib/cct
+        chown -R cct:cct /var/log/cct
+
+        # Set permissions
+        chmod 750 /var/lib/cct/pocketbase
+        chmod 750 /var/log/cct
+
+        # Reload systemd
+        systemctl daemon-reload
+
+        # Enable and start PocketBase service
+        systemctl enable cct-pocketbase.service
+        systemctl start cct-pocketbase.service
+
+        echo ""
+        echo "═══════════════════════════════════════════════════════════════"
+        echo "  Claude Context Tracker (CCT) installed successfully!"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        echo "✓ PocketBase is running at http://localhost:8090"
+        echo "✓ CLI tool available: cct"
+        echo ""
+        echo "Next steps:"
+        echo "  1. Create admin account: http://localhost:8090/_/"
+        echo "  2. Start frontend: cd /usr/share/cct/frontend && npm run dev"
+        echo "  3. Use CLI: cct status"
+        echo ""
+        echo "Optional - Configure daemon:"
+        echo "  sudo cp /usr/share/cct/cct-daemon.service.template /etc/systemd/system/cct-daemon.service"
+        echo "  sudo nano /etc/systemd/system/cct-daemon.service"
+        echo "  sudo systemctl enable cct-daemon && sudo systemctl start cct-daemon"
+        echo ""
+        echo "Documentation: /usr/share/doc/cct/README.md"
+        echo "═══════════════════════════════════════════════════════════════"
+        echo ""
+        ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+        ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

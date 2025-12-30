@@ -9,6 +9,7 @@ daemon/cct-daemon
 daemon/cct-daemon.exe
 cli/cct
 cli/cct.exe
+build/
 
 # PocketBase data
 pocketbase/pb_data/*.db
