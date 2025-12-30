@@ -1,0 +1,312 @@
+/* Claude Context Tracker GTK4 Stylesheet */
+
+/* Status badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: @success_bg_color;
+    color: @success_fg_color;
+}
+
+.status-paused {
+    background-color: @warning_bg_color;
+    color: @warning_fg_color;
+}
+
+.status-idea {
+    background-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+.status-archived {
+    background-color: @error_bg_color;
+    color: @error_fg_color;
+}
+
+/* Project cards */
+.project-card {
+    padding: 16px;
+    margin: 8px;
+    border-radius: 12px;
+    background-color: @card_bg_color;
+    border: 1px solid alpha(@borders, 0.5);
+    transition: all 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.project-card:hover {
+    background-color: alpha(@accent_bg_color, 0.1);
+    border-color: @accent_color;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.project-card-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.project-card-subtitle {
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.project-card-description {
+    font-size: 0.95em;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+/* Tech stack chips */
+.tech-chip {
+    padding: 4px 10px;
+    margin: 2px;
+    border-radius: 8px;
+    background-color: alpha(@accent_bg_color, 0.3);
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+/* Importance stars */
+.importance-stars {
+    font-size: 1.1em;
+    color: @warning_color;
+}
+
+.importance-high {
+    color: @success_color;
+}
+
+.importance-low {
+    opacity: 0.5;
+}
+
+/* Fact type badges */
+.fact-badge {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-right: 8px;
+}
+
+.fact-decision {
+    background-color: alpha(@success_bg_color, 0.3);
+    color: @success_fg_color;
+}
+
+.fact-blocker {
+    background-color: alpha(@error_bg_color, 0.3);
+    color: @error_fg_color;
+}
+
+.fact-todo {
+    background-color: alpha(@accent_bg_color, 0.3);
+    color: @accent_fg_color;
+}
+
+.fact-file-change {
+    background-color: alpha(@accent_bg_color, 0.3);
+    color: @accent_fg_color;
+}
+
+.fact-dependency {
+    background-color: alpha(@warning_bg_color, 0.3);
+    color: @warning_fg_color;
+}
+
+.fact-insight {
+    background-color: alpha(@accent_bg_color, 0.3);
+    color: @accent_fg_color;
+}
+
+/* Stale fact indicator */
+.fact-stale {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+/* Token usage progress bar */
+.token-progress {
+    min-height: 24px;
+}
+
+.token-progress-normal {
+    background-color: @success_color;
+}
+
+.token-progress-warning {
+    background-color: @warning_color;
+}
+
+.token-progress-critical {
+    background-color: @error_color;
+}
+
+/* Session cards */
+.session-card {
+    padding: 12px;
+    margin: 4px 0;
+    border-radius: 8px;
+    border: 1px solid alpha(@borders, 0.3);
+}
+
+.session-active {
+    border-color: @success_color;
+    border-width: 2px;
+}
+
+/* Context section */
+.section-header {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.section-content {
+    padding: 12px;
+    background-color: alpha(@card_bg_color, 0.5);
+    border-radius: 8px;
+    border: 1px solid alpha(@borders, 0.3);
+    font-family: monospace;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 48px;
+    text-align: center;
+    opacity: 0.6;
+}
+
+.empty-state-icon {
+    font-size: 64px;
+    opacity: 0.5;
+    margin-bottom: 16px;
+}
+
+.empty-state-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.empty-state-subtitle {
+    font-size: 1em;
+    opacity: 0.7;
+}
+
+/* Scrolled window styling */
+.scrolled-content {
+    background-color: @window_bg_color;
+}
+
+/* List styling */
+.project-list {
+    background-color: transparent;
+}
+
+.project-list row {
+    border-radius: 8px;
+    margin: 4px 8px;
+}
+
+/* Tab styling */
+.tab-content {
+    padding: 16px;
+}
+
+/* Sidebar styling */
+.sidebar {
+    border-left: 1px solid @borders;
+    background-color: @sidebar_bg_color;
+}
+
+.sidebar-section {
+    padding: 12px;
+}
+
+.sidebar-title {
+    font-weight: bold;
+    font-size: 0.9em;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+/* Form styling */
+.form-row {
+    margin-bottom: 12px;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+/* Button groups */
+.button-group {
+    margin-top: 16px;
+}
+
+.button-group button {
+    margin-right: 8px;
+}
+
+/* Priority indicator */
+.priority-high {
+    color: @error_color;
+}
+
+.priority-medium {
+    color: @warning_color;
+}
+
+.priority-low {
+    color: @success_color;
+}
+
+/* Markdown preview */
+.markdown-preview {
+    padding: 16px;
+    background-color: @card_bg_color;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+}
+
+/* Toast styling (inherited from libadwaita) */
+toast {
+    border-radius: 8px;
+}
+
+/* Spinner styling */
+.loading-spinner {
+    margin: 32px;
+}
+
+/* Toolbar styling */
+.toolbar {
+    background-color: @headerbar_bg_color;
+    border-bottom: 1px solid @borders;
+    padding: 8px;
+}
+
+/* Action row subtitle */
+row subtitle {
+    opacity: 0.7;
+}
+
+/* Compact mode for dense information */
+.compact row {
+    padding: 4px;
+}
+
+.compact label {
+    font-size: 0.9em;
+}

@@ -1,0 +1,54 @@
+[package]
+name = "claude-context-tracker"
+version = "0.1.0"
+edition = "2021"
+authors = ["Claude Context Tracker Contributors"]
+description = "Native GTK4 application for managing Claude Code context across projects"
+license = "MIT"
+
+[dependencies]
+# GTK4 and libadwaita bindings
+gtk = { version = "0.8", package = "gtk4", features = ["v4_12"] }
+adw = { version = "0.6", package = "libadwaita", features = ["v1_4"] }
+glib = "0.19"
+gio = "0.19"
+
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+futures = "0.3"
+
+# HTTP client for PocketBase API
+reqwest = { version = "0.11", features = ["json"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Date/time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Markdown rendering/export
+pulldown-cmark = "0.9"
+
+# URL encoding for API requests
+urlencoding = "2.1"
+
+# WebSocket support for realtime (optional - can add later)
+# tungstenite = "0.21"
+
+[build-dependencies]
+glib-build-tools = "0.19"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = true

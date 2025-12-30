@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Claude Context Tracker
+GenericName=Project Context Manager
+Comment=Manage Claude Code context across development projects
+Icon=com.github.claudecontexttracker
+Exec=claude-context-tracker
+Terminal=false
+Categories=Development;Utility;
+Keywords=claude;ai;context;development;project;
+StartupNotify=true
+StartupWMClass=claude-context-tracker
