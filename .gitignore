@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build outputs
+dist/
+frontend/dist/
+daemon/cct-daemon
+daemon/cct-daemon.exe
+cli/cct
+cli/cct.exe
+
+# PocketBase data
+pocketbase/pb_data/*.db
+pocketbase/pb_data/logs.db
+pocketbase/pb_data/data.db
+pocketbase/pocketbase
+pocketbase/pocketbase.exe
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Logs
+*.log
+logs/
