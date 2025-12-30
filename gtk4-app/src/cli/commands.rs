@@ -23,6 +23,10 @@ pub fn pull_command(repository: &Repository, project: &str, output: Option<Strin
     println!("✓ Pulled context for '{}' to {}", proj.name, output_path);
     println!("  {} sections", sections.len());
 
+    // Send notification
+    let path = Path::new(&output_path).to_path_buf();
+    crate::notifications::notify_context_pulled(&proj.name, Some(&path));
+
     Ok(())
 }
 
@@ -51,6 +55,9 @@ pub fn push_command(
     if let Some(t) = tokens {
         println!("  Tokens: {}", t);
     }
+
+    // Send notification
+    crate::notifications::notify_context_pushed(&proj.name, tokens.map(|t| t as usize));
 
     Ok(())
 }
@@ -152,6 +159,9 @@ pub fn new_command(
 
     println!("✓ Created project '{}'", project.name);
     println!("  ID: {}", project.id);
+
+    // Send notification
+    crate::notifications::notify_project_created(&project.name);
 
     Ok(())
 }

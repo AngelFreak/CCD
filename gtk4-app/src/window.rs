@@ -240,6 +240,8 @@ impl MainWindow {
                             label.set_text("Monitoring");
                             label.add_css_class("monitoring-active");
                         }
+                        // Send notification
+                        crate::notifications::notify_monitoring_started("default");
                     }
                     Err(e) => {
                         log::error!("Failed to start monitoring: {}", e);
@@ -254,6 +256,8 @@ impl MainWindow {
                     label.set_text("Monitor");
                     label.remove_css_class("monitoring-active");
                 }
+                // Send notification
+                crate::notifications::notify_monitoring_stopped();
             }
 
             glib::Propagation::Proceed

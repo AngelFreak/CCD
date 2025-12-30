@@ -154,6 +154,13 @@ impl LogMonitor {
             let _ = self.repository.update_session(&session_id, payload);
         }
 
+        // Send notification if facts were extracted
+        if total_facts > 0 {
+            if let Ok(project) = self.repository.get_project(&self.project_id) {
+                crate::notifications::notify_facts_extracted(&project.name, total_facts);
+            }
+        }
+
         // Update staleness for existing facts
         self.update_stale_facts()?;
 
@@ -191,6 +198,19 @@ impl LogMonitor {
         };
 
         let session = self.repository.create_session(payload)?;
+
+        // Check for token threshold warning (default: 170000)
+        let threshold = 170000;
+        if token_count > threshold {
+            if let Ok(project) = self.repository.get_project(&self.project_id) {
+                crate::notifications::notify_token_threshold(
+                    &project.name,
+                    token_count as usize,
+                    threshold,
+                );
+            }
+        }
+
         Ok(session.id)
     }
 

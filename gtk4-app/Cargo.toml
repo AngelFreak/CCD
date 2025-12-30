@@ -48,6 +48,9 @@ clap = { version = "4.4", features = ["derive", "cargo"] }
 # File system monitoring for Claude Code logs
 notify = "6.1"
 
+# Desktop notifications
+notify-rust = "4.10"
+
 # Regex for fact extraction
 regex = "1.10"
 

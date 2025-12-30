@@ -2,6 +2,7 @@ mod cli;
 mod db;
 mod models;
 mod monitor;
+mod notifications;
 mod settings;
 mod utils;
 mod views;

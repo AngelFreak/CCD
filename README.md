@@ -13,6 +13,7 @@ A modern GTK4 desktop application that helps you track, manage, and maintain con
 ### 🖥️ Native Desktop Application
 - **Modern GTK4 Interface** - Clean, native GNOME application with libadwaita
 - **Background Monitoring** - Toggle to automatically track Claude Code conversations
+- **Desktop Notifications** - Get notified about facts extracted, token thresholds, and monitoring events
 - **Project Management** - Organize multiple projects with easy switching
 - **Context Editing** - Structured sections for project overview, tech stack, decisions, and gotchas
 
@@ -107,6 +108,18 @@ claude-context-tracker gui
 2. Click the **Monitor** toggle in the header bar
 3. Label changes to "Monitoring" (orange) when active
 4. Facts are automatically extracted from `~/.claude/logs/` conversations
+
+### Desktop Notifications
+
+The application sends desktop notifications for important events:
+
+- **Facts Extracted** - Notifies when new facts are detected in Claude Code conversations
+- **Token Threshold** - Warns when context size exceeds 170,000 tokens
+- **Monitoring Events** - Confirms when background monitoring starts/stops
+- **Context Operations** - Notifies when pulling or pushing context to CLAUDE.md
+- **Project Created** - Confirms when new projects are created
+
+Notifications use the system's native notification daemon (e.g., GNOME Shell, Dunst, or others).
 
 ### CLI Commands
 
@@ -378,10 +391,10 @@ RUST_LOG=debug claude-context-tracker monitor myproject
 
 ## Roadmap
 
-- [ ] Settings dialog (database location, auto-start monitoring)
-- [ ] Keyboard shortcuts (Ctrl+N for new project, Ctrl+F for search)
-- [ ] Context menus (right-click actions)
-- [ ] Desktop notifications (new facts, token thresholds)
+- [x] Settings dialog (database location, auto-start monitoring)
+- [x] Keyboard shortcuts (Ctrl+N for new project, Ctrl+F for search)
+- [x] Context menus (right-click actions)
+- [x] Desktop notifications (new facts, token thresholds)
 - [ ] Export to PDF/HTML
 - [ ] Flatpak packaging
 - [ ] Search and filtering
@@ -400,5 +413,6 @@ Built with:
 - [rusqlite](https://github.com/rusqlite/rusqlite) - SQLite bindings for Rust
 - [clap](https://github.com/clap-rs/clap) - Command line argument parsing
 - [notify](https://github.com/notify-rs/notify) - File system monitoring
+- [notify-rust](https://github.com/hoodie/notify-rust) - Desktop notifications
 
 Inspired by the need to maintain context across long Claude Code conversations.
